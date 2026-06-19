@@ -4,7 +4,7 @@ export default function Footer() {
   return (
     <footer className="footer">
       <div className="footer-inner">
-        <p>© 2026 <strong>AI Career Twin</strong> — B.E. Computer Science &amp; Engineering, Final Year Project</p>
+        <p>© 2026 <strong>AI Career Twin</strong> — B.E. Computer Science &amp; Engineering, Final Year Project | <a href="https://github.com/Mjeevadharsan" target="_blank" rel="noopener noreferrer" className="github-link"><i className="fa-brands fa-github" /> Mjeevadharsan</a></p>
         <p className="footer-tags">
           Artificial Intelligence &bull; Machine Learning &bull; Career Guidance &bull; Recommendation System &bull; Data Analytics
         </p>

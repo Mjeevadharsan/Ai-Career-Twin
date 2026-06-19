@@ -9,3 +9,16 @@
 .footer-tags { color: var(--gray-600) !important; font-size: 0.72rem !important; }
 .footer-tech { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; color: var(--gray-500) !important; font-size: 0.74rem !important; }
 .footer-tech i { color: var(--blue-400); }
+
+.github-link {
+  color: var(--blue-400);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+  margin-left: 5px;
+}
+
+.github-link:hover {
+  color: var(--blue-300);
+  text-decoration: underline;
+}
