@@ -9,6 +9,7 @@ import CareerPrediction from '../pages/CareerPrediction'
 import SkillGapAnalysis from '../pages/SkillGapAnalysis'
 import Recommendations  from '../pages/Recommendations'
 import Settings         from '../pages/Settings'
+import AdminLogin       from '../pages/AdminLogin'
 import AdminDashboard   from '../pages/AdminDashboard'
 
 function PrivateRoute({ children }) {
@@ -31,8 +32,8 @@ export default function AppRoutes() {
       <Route path="/login"  element={<Login />} />
       <Route path="/signup" element={<Signup />} />
 
-      {/* Legacy admin-login URL → redirect to unified login */}
-      <Route path="/admin-login" element={<Navigate to="/login" replace />} />
+      {/* Admin Login */}
+      <Route path="/admin-login" element={<AdminLogin />} />
 
       {/* Admin */}
       <Route path="/admin/dashboard" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
