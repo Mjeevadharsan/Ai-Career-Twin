@@ -103,6 +103,13 @@ public class DatabaseService {
                 }
             }
             
+            
+            // Forcefully ensure the admin account has the ADMIN role if they registered manually
+            String forceAdmin = "UPDATE users SET role = 'ADMIN' WHERE username = 'admin@careertwin.com'";
+            try (PreparedStatement pstmt = conn.prepareStatement(forceAdmin)) {
+                pstmt.executeUpdate();
+            }
+
             System.out.println("MySQL tables successfully initialized.");
         } catch (SQLException e) {
             System.err.println("Database initialization failed: " + e.getMessage());
