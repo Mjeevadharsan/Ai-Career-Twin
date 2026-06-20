@@ -100,9 +100,10 @@ public class DatabaseService {
                     pstmt.setString(2, hashPassword("admin123"));
                     pstmt.executeUpdate();
                     System.out.println("Default admin account created: admin@careertwin.com / admin123");
+                } catch (SQLException ignore) {
+                    // Ignore if it already exists as a student
                 }
             }
-            
             
             // Forcefully ensure the admin account has the ADMIN role if they registered manually
             String forceAdmin = "UPDATE users SET role = 'ADMIN' WHERE username = 'admin@careertwin.com'";
