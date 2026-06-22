@@ -170,7 +170,7 @@ public class DatabaseService {
                     int userId = rs.getInt("id");
 
                     // Update last login and login count
-                    String updateSql = "UPDATE users SET last_login = NOW(), login_count = login_count + 1 WHERE id = ?";
+                    String updateSql = "UPDATE users SET last_login = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?";
                     try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                         updateStmt.setInt(1, userId);
                         updateStmt.executeUpdate();
@@ -313,13 +313,13 @@ public class DatabaseService {
 
             // Total logins today
             ResultSet rs3 = stmt
-                    .executeQuery("SELECT COUNT(*) as count FROM login_history WHERE DATE(login_time) = CURDATE()");
+                    .executeQuery("SELECT COUNT(*) as count FROM login_history WHERE CAST(login_time AS DATE) = CURRENT_DATE");
             if (rs3.next())
                 stats.put("logins_today", rs3.getInt("count"));
 
             // New signups today
             ResultSet rs4 = stmt.executeQuery(
-                    "SELECT COUNT(*) as count FROM users WHERE DATE(created_at) = CURDATE() AND role = 'STUDENT'");
+                    "SELECT COUNT(*) as count FROM users WHERE CAST(created_at AS DATE) = CURRENT_DATE AND role = 'STUDENT'");
             if (rs4.next())
                 stats.put("signups_today", rs4.getInt("count"));
 
