@@ -221,6 +221,28 @@ public class DatabaseService {
         return null;
     }
 
+    // Get user by ID (for token-based auth)
+    public Map<String, Object> getUserById(int userId) {
+        String sql = "SELECT id, username, role, full_name FROM users WHERE id = ?";
+        try (Connection conn = getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setInt(1, userId);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    Map<String, Object> user = new HashMap<>();
+                    user.put("id", rs.getInt("id"));
+                    user.put("username", rs.getString("username"));
+                    user.put("role", rs.getString("role"));
+                    user.put("full_name", rs.getString("full_name"));
+                    return user;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Failed to fetch user by id: " + e.getMessage());
+        }
+        return null;
+    }
+
     // Get all students for admin dashboard
     public List<Map<String, Object>> getAllStudents() {
         List<Map<String, Object>> students = new ArrayList<>();

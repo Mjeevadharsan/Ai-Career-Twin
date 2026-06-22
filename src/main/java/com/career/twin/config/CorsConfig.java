@@ -15,15 +15,11 @@ public class CorsConfig {
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Allow credentials (sessions/cookies)
-        config.setAllowCredentials(true);
+        // Allow credentials (no longer needed for token auth, but safe to keep)
+        config.setAllowCredentials(false);
 
         // Allowed origins: local dev + Render production
-        config.setAllowedOrigins(List.of(
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "https://ai-career-twin-1.onrender.com"
-        ));
+        config.setAllowedOrigins(List.of("*"));
 
         // Allow all standard HTTP methods
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));

@@ -5,7 +5,6 @@ import com.career.twin.ml.KNNClassifier.CareerProbability;
 import com.career.twin.service.DatabaseService;
 import com.career.twin.service.RecommendationService;
 import com.career.twin.service.RecommendationService.AnalysisResult;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +25,14 @@ public class ApiController {
         this.recommendationService = recommendationService;
     }
 
+    // --- Auth helper: read userId from X-Auth-Token header ---
+    private Integer getUserId(@RequestHeader Map<String, String> headers) {
+        String token = headers.get("x-auth-token");
+        if (token == null || token.isBlank()) return null;
+        try { return Integer.parseInt(token.trim()); }
+        catch (NumberFormatException e) { return null; }
+    }
+
     // --- Authentication Routes ---
 
     @PostMapping("/register")
@@ -35,7 +42,7 @@ public class ApiController {
         String fullName = Objects.toString(
             request.get("fullName") != null ? request.get("fullName") : request.get("full_name"), ""
         ).trim();
-        String mobile   = Objects.toString(request.get("mobile"), "").trim();
+        String mobile = Objects.toString(request.get("mobile"), "").trim();
 
         if (username.length() < 3 || password.length() < 4) {
             return ResponseEntity.badRequest().body(Map.of("error", "Username must be >= 3 chars, password >= 4 chars."));
@@ -50,212 +57,198 @@ public class ApiController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody Map<String, String> request, HttpSession session) {
+    public ResponseEntity<?> login(@RequestBody Map<String, String> request) {
         String username = request.getOrDefault("username", "").trim();
         String password = request.getOrDefault("password", "").trim();
 
         Map<String, Object> userInfo = databaseService.loginUser(username, password);
         if (userInfo != null) {
-            session.setAttribute("userId", userInfo.get("id"));
-            session.setAttribute("username", userInfo.get("username"));
-            session.setAttribute("role", userInfo.get("role"));
-            session.setAttribute("full_name", userInfo.get("full_name"));
-            return ResponseEntity.ok(Map.of(
-                "message", "Login successful!", 
-                "username", userInfo.get("username"),
-                "role", userInfo.get("role"),
-                "full_name", userInfo.get("full_name") != null ? userInfo.get("full_name") : ""
-            ));
+            // Return userId as the auth token in the response body
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("message", "Login successful!");
+            resp.put("token", userInfo.get("id").toString());   // userId = token
+            resp.put("userId", userInfo.get("id"));
+            resp.put("username", userInfo.get("username"));
+            resp.put("role", userInfo.get("role"));
+            resp.put("full_name", userInfo.get("full_name") != null ? userInfo.get("full_name") : "");
+            return ResponseEntity.ok(resp);
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Invalid username or password."));
         }
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpSession session) {
-        session.invalidate();
+    public ResponseEntity<?> logout() {
         return ResponseEntity.ok(Map.of("message", "Logged out successfully."));
     }
 
     // --- Profile & Twin Routes ---
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile(HttpSession session) {
-        Integer userId = (Integer) session.getAttribute("userId");
+    public ResponseEntity<?> getProfile(@RequestHeader Map<String, String> headers) {
+        Integer userId = getUserId(headers);
         if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized access. Please log in."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized. Please log in."));
         }
+
+        // Fetch user meta from DB
+        Map<String, Object> userMeta = databaseService.getUserById(userId);
+        String username = userMeta != null ? (String) userMeta.get("username") : "";
+        String role     = userMeta != null ? (String) userMeta.get("role")     : "STUDENT";
+        String fullName = userMeta != null ? (String) userMeta.get("full_name"): "";
 
         Map<String, Object> prof = databaseService.getProfile(userId);
         if (prof == null) {
             return ResponseEntity.ok(Map.of(
                 "has_profile", false,
-                "username", session.getAttribute("username") != null ? session.getAttribute("username") : "",
-                "role", session.getAttribute("role") != null ? session.getAttribute("role") : "STUDENT",
-                "full_name", session.getAttribute("full_name") != null ? session.getAttribute("full_name") : ""
+                "username", username,
+                "role", role,
+                "full_name", fullName
             ));
         }
 
-        double cgpa = (double) prof.get("cgpa");
-        int projects = (int) prof.get("projects");
-        int certifications = (int) prof.get("certifications");
-        double analytical = (double) prof.get("apt_analytical");
-        double coding = (double) prof.get("apt_coding");
+        double cgpa          = (double) prof.get("cgpa");
+        int projects         = (int)    prof.get("projects");
+        int certifications   = (int)    prof.get("certifications");
+        double analytical    = (double) prof.get("apt_analytical");
+        double coding        = (double) prof.get("apt_coding");
         double communication = (double) prof.get("apt_communication");
-        double problemSolving = (double) prof.get("apt_problem_solving");
-        Set<String> skills = (Set<String>) prof.get("skills");
+        double problemSolving= (double) prof.get("apt_problem_solving");
+        @SuppressWarnings("unchecked")
+        Set<String> skills    = (Set<String>) prof.get("skills");
+        @SuppressWarnings("unchecked")
         Set<String> interests = (Set<String>) prof.get("interests");
 
-        // Run ML KNN prediction
         List<CareerProbability> probs = knnClassifier.predict(
-                cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests
-        );
+                cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests);
 
-        // Generate skill gap & recommendations roadmap
         AnalysisResult analysis = recommendationService.analyze(
-                probs, cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests
-        );
+                probs, cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests);
 
         Map<String, Object> response = new HashMap<>(prof);
         response.put("has_profile", true);
         response.put("analysis", analysis);
-        response.put("username", session.getAttribute("username") != null ? session.getAttribute("username") : "");
-        response.put("role", session.getAttribute("role") != null ? session.getAttribute("role") : "STUDENT");
-        response.put("full_name", session.getAttribute("full_name") != null ? session.getAttribute("full_name") : "");
-
+        response.put("username", username);
+        response.put("role", role);
+        response.put("full_name", fullName);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/profile")
-    public ResponseEntity<?> saveProfile(@RequestBody Map<String, Object> request, HttpSession session) {
-        Integer userId = (Integer) session.getAttribute("userId");
+    public ResponseEntity<?> saveProfile(@RequestBody Map<String, Object> request,
+                                         @RequestHeader Map<String, String> headers) {
+        Integer userId = getUserId(headers);
         if (userId == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized access. Please log in."));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized. Please log in."));
         }
 
         try {
-            double cgpa = Double.parseDouble(request.getOrDefault("cgpa", "7.5").toString());
-            int projects = Integer.parseInt(request.getOrDefault("projects", "0").toString());
-            int certifications = Integer.parseInt(request.getOrDefault("certifications", "0").toString());
-            double analytical = Double.parseDouble(request.getOrDefault("apt_analytical", "70").toString());
-            double coding = Double.parseDouble(request.getOrDefault("apt_coding", "70").toString());
+            double cgpa          = Double.parseDouble(request.getOrDefault("cgpa", "7.5").toString());
+            int projects         = Integer.parseInt(request.getOrDefault("projects", "0").toString());
+            int certifications   = Integer.parseInt(request.getOrDefault("certifications", "0").toString());
+            double analytical    = Double.parseDouble(request.getOrDefault("apt_analytical", "70").toString());
+            double coding        = Double.parseDouble(request.getOrDefault("apt_coding", "70").toString());
             double communication = Double.parseDouble(request.getOrDefault("apt_communication", "70").toString());
-            double problemSolving = Double.parseDouble(request.getOrDefault("apt_problem_solving", "70").toString());
+            double problemSolving= Double.parseDouble(request.getOrDefault("apt_problem_solving", "70").toString());
 
-            List<String> skillsList = (List<String>) request.getOrDefault("skills", new ArrayList<>());
+            @SuppressWarnings("unchecked")
+            List<String> skillsList    = (List<String>) request.getOrDefault("skills", new ArrayList<>());
+            @SuppressWarnings("unchecked")
             List<String> interestsList = (List<String>) request.getOrDefault("interests", new ArrayList<>());
 
-            Set<String> skills = new HashSet<>(skillsList);
+            Set<String> skills    = new HashSet<>(skillsList);
             Set<String> interests = new HashSet<>(interestsList);
 
-            // Save to MySQL
-            databaseService.saveProfile(
-                userId, cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests
-            );
+            databaseService.saveProfile(userId, cgpa, projects, certifications,
+                    analytical, coding, communication, problemSolving, skills, interests);
 
-            // Compute Prediction
             List<CareerProbability> probs = knnClassifier.predict(
-                cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests
-            );
+                    cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests);
 
             AnalysisResult analysis = recommendationService.analyze(
-                probs, cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests
-            );
+                    probs, cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests);
 
             return ResponseEntity.ok(Map.of("message", "Profile saved successfully!", "analysis", analysis));
-
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid data input format: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid data: " + e.getMessage()));
         }
     }
 
-    // --- Anonymous API Route for Prediction ---
+    // --- Anonymous Prediction ---
 
     @PostMapping("/predict")
     public ResponseEntity<?> predict(@RequestBody Map<String, Object> request) {
         try {
-            double cgpa = Double.parseDouble(request.getOrDefault("cgpa", "7.5").toString());
-            int projects = Integer.parseInt(request.getOrDefault("projects", "0").toString());
-            int certifications = Integer.parseInt(request.getOrDefault("certifications", "0").toString());
-            double analytical = Double.parseDouble(request.getOrDefault("apt_analytical", "70").toString());
-            double coding = Double.parseDouble(request.getOrDefault("apt_coding", "70").toString());
+            double cgpa          = Double.parseDouble(request.getOrDefault("cgpa", "7.5").toString());
+            int projects         = Integer.parseInt(request.getOrDefault("projects", "0").toString());
+            int certifications   = Integer.parseInt(request.getOrDefault("certifications", "0").toString());
+            double analytical    = Double.parseDouble(request.getOrDefault("apt_analytical", "70").toString());
+            double coding        = Double.parseDouble(request.getOrDefault("apt_coding", "70").toString());
             double communication = Double.parseDouble(request.getOrDefault("apt_communication", "70").toString());
-            double problemSolving = Double.parseDouble(request.getOrDefault("apt_problem_solving", "70").toString());
+            double problemSolving= Double.parseDouble(request.getOrDefault("apt_problem_solving", "70").toString());
 
-            List<String> skillsList = (List<String>) request.getOrDefault("skills", new ArrayList<>());
+            @SuppressWarnings("unchecked")
+            List<String> skillsList    = (List<String>) request.getOrDefault("skills", new ArrayList<>());
+            @SuppressWarnings("unchecked")
             List<String> interestsList = (List<String>) request.getOrDefault("interests", new ArrayList<>());
 
-            Set<String> skills = new HashSet<>(skillsList);
+            Set<String> skills    = new HashSet<>(skillsList);
             Set<String> interests = new HashSet<>(interestsList);
 
-            // Compute Prediction
             List<CareerProbability> probs = knnClassifier.predict(
-                cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests
-            );
+                    cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests);
 
             AnalysisResult analysis = recommendationService.analyze(
-                probs, cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests
-            );
+                    probs, cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests);
 
             return ResponseEntity.ok(analysis);
-
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid data input format: " + e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("error", "Invalid data: " + e.getMessage()));
         }
     }
 
     // --- Admin Routes ---
 
-    private boolean isAdmin(HttpSession session) {
-        String role = (String) session.getAttribute("role");
-        return role != null && role.equals("ADMIN");
+    private boolean isAdmin(@RequestHeader Map<String, String> headers) {
+        Integer userId = getUserId(headers);
+        if (userId == null) return false;
+        Map<String, Object> userMeta = databaseService.getUserById(userId);
+        return userMeta != null && "ADMIN".equals(userMeta.get("role"));
     }
 
     @GetMapping("/admin/stats")
-    public ResponseEntity<?> getAdminStats(HttpSession session) {
-        if (!isAdmin(session)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied. Admins only."));
-        }
+    public ResponseEntity<?> getAdminStats(@RequestHeader Map<String, String> headers) {
+        if (!isAdmin(headers)) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Admins only."));
         return ResponseEntity.ok(databaseService.getAdminStats());
     }
 
     @GetMapping("/admin/students")
-    public ResponseEntity<?> getAdminStudents(HttpSession session) {
-        if (!isAdmin(session)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied. Admins only."));
-        }
+    public ResponseEntity<?> getAdminStudents(@RequestHeader Map<String, String> headers) {
+        if (!isAdmin(headers)) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Admins only."));
         return ResponseEntity.ok(databaseService.getAllStudents());
     }
 
     @DeleteMapping("/admin/students/{id}")
-    public ResponseEntity<?> deleteStudent(@PathVariable("id") int id, HttpSession session) {
-        if (!isAdmin(session)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied. Admins only."));
-        }
+    public ResponseEntity<?> deleteStudent(@PathVariable("id") int id,
+                                           @RequestHeader Map<String, String> headers) {
+        if (!isAdmin(headers)) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Admins only."));
         boolean success = databaseService.deleteUser(id);
-        if (success) {
-            return ResponseEntity.ok(Map.of("message", "Student deleted successfully."));
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Student not found or cannot be deleted."));
-        }
+        return success
+            ? ResponseEntity.ok(Map.of("message", "Student deleted successfully."))
+            : ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Student not found."));
     }
 
     @GetMapping("/admin/login-history")
-    public ResponseEntity<?> getLoginHistory(@RequestParam(value = "limit", defaultValue = "50") int limit, HttpSession session) {
-        if (!isAdmin(session)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied. Admins only."));
-        }
+    public ResponseEntity<?> getLoginHistory(@RequestParam(value = "limit", defaultValue = "50") int limit,
+                                             @RequestHeader Map<String, String> headers) {
+        if (!isAdmin(headers)) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Admins only."));
         return ResponseEntity.ok(databaseService.getLoginHistory(limit));
     }
 
     @GetMapping("/admin/activities")
-    public ResponseEntity<?> getActivities(@RequestParam(value = "limit", defaultValue = "50") int limit, HttpSession session) {
-        if (!isAdmin(session)) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Access denied. Admins only."));
-        }
+    public ResponseEntity<?> getActivities(@RequestParam(value = "limit", defaultValue = "50") int limit,
+                                           @RequestHeader Map<String, String> headers) {
+        if (!isAdmin(headers)) return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("error", "Admins only."));
         return ResponseEntity.ok(databaseService.getRecentActivities(limit));
     }
 }
-
-
-
