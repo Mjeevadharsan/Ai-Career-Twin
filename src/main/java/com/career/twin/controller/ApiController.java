@@ -13,7 +13,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping("/api")
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "https://ai-career-twin-1.onrender.com"}, allowCredentials = "true")
 public class ApiController {
 
     private final KNNClassifier knnClassifier;
