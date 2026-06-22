@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-// In production (Render), VITE_API_URL must point to the backend service.
-// Fallback: use the deployed backend URL if env var is not set.
+// Backend routes are at root level (no /api prefix).
+// Dev: hit localhost:5000 directly. Prod: use VITE_API_URL or the Render backend URL.
 const BASE_URL = import.meta.env.VITE_API_URL
-  || (import.meta.env.DEV ? '/api' : 'https://ai-career-twin.onrender.com/api')
+  || (import.meta.env.DEV ? 'http://localhost:5000' : 'https://ai-career-twin.onrender.com')
 
 const api = axios.create({
   baseURL: BASE_URL,

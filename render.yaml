@@ -1,0 +1,24 @@
+services:
+  # Spring Boot Backend
+  - type: web
+    name: ai-career-twin
+    env: java
+    buildCommand: mvn clean package -DskipTests
+    startCommand: java -jar target/twin-1.0.0.jar
+    envVars:
+      - key: SPRING_DATASOURCE_URL
+        sync: false
+      - key: SPRING_DATASOURCE_USERNAME
+        sync: false
+      - key: SPRING_DATASOURCE_PASSWORD
+        sync: false
+
+  # React Frontend
+  - type: web
+    name: ai-career-twin-1
+    env: static
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://ai-career-twin.onrender.com
