@@ -30,7 +30,7 @@ export default function AppRoutes() {
       {/* Public */}
       <Route path="/"       element={<Home />} />
       <Route path="/login"  element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
+      <Route path="/signup" element={<Navigate to="/login?mode=signup" replace />} />
 
       {/* Admin Login */}
       <Route path="/admin-login" element={<AdminLogin />} />
