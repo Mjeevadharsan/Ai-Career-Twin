@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import studentNibLogo from '../assets/student_nib_logo.png'
 import './Home.css'
 
 const features = [
@@ -60,7 +61,7 @@ export default function Home() {
               <circle cx="210" cy="185" r="140" stroke="url(#r1)" strokeWidth="1" strokeDasharray="5 8" opacity=".5"/>
               <circle cx="210" cy="185" r="104" stroke="url(#r2)" strokeWidth="1.5" strokeDasharray="3 5" opacity=".4"/>
               <circle cx="210" cy="185" r="58" fill="url(#hub)" filter="url(#glow)"/>
-              <text x="210" y="200" textAnchor="middle" fontSize="38">🧠</text>
+              <image href={studentNibLogo} x="170" y="145" width="80" height="80" className="floating-logo" />
               <line x1="148" y1="108" x2="186" y2="148" stroke="url(#lg)" strokeWidth="1.5"/>
               <circle cx="120" cy="86" r="34" fill="url(#n1)"/>
               <text x="120" y="93" textAnchor="middle" fontSize="20">⚙️</text>

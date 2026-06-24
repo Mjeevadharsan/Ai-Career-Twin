@@ -86,3 +86,19 @@
   .cta-card  { padding:36px 20px; }
   .cta-card h2 { font-size:1.4rem; }
 }
+
+/* ── Floating Logo in SVG Illustration ── */
+.floating-logo {
+  animation: svgFloat 3.8s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes svgFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
