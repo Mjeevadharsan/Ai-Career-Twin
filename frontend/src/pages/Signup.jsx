@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logo from '../assets/logo.png'
 import './Auth.css'
 
 const COUNTRY_CODES = [
@@ -125,7 +126,9 @@ export default function Signup() {
       </div>
       <div className="auth-card fade-up">
         <Link to="/" className="brand">
-          <div className="brand-icon"><i className="fa-solid fa-network-wired"/></div>
+          <div className="brand-icon">
+            <img src={logo} alt="Logo" className="brand-logo-img" />
+          </div>
           <span className="brand-name">AI Career <span>Twin</span></span>
         </Link>
 

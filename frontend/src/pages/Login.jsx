@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logo from '../assets/logo.png'
 import './Login.css'
 
 const COUNTRY_CODES = [
@@ -198,7 +199,7 @@ export default function Login() {
         {/* Brand */}
         <Link to="/" className="login-brand">
           <div className="login-brand-icon">
-            <i className="fa-solid fa-network-wired" />
+            <img src={logo} alt="AI Career Twin Logo" className="login-brand-logo-img" />
           </div>
           <span className="login-brand-name">AI Career <span>Twin</span></span>
         </Link>

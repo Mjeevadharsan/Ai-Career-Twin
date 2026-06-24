@@ -1,5 +1,6 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import logo from '../assets/logo.png'
 import './Navbar.css'
 
 export default function Navbar() {
@@ -21,7 +22,9 @@ export default function Navbar() {
     <header className="navbar">
       <div className="nav-inner">
         <Link to="/" className="nav-brand">
-          <div className="brand-icon"><i className="fa-solid fa-network-wired" /></div>
+          <div className="brand-icon">
+            <img src={logo} alt="AI Career Twin" className="brand-logo-img" />
+          </div>
           <span className="brand-name">AI Career <span>Twin</span></span>
         </Link>
 

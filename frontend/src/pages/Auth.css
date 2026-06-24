@@ -23,10 +23,12 @@
 }
 .brand-icon {
   width: 42px; height: 42px; border-radius: 11px;
-  background: linear-gradient(135deg,var(--blue-600),var(--purple-600));
   display: flex; align-items: center; justify-content: center;
-  color: white; font-size: 1.1rem;
+  overflow: hidden;
   box-shadow: 0 4px 12px rgba(37,99,235,0.35);
+}
+.brand-logo-img {
+  width: 100%; height: 100%; object-fit: cover;
 }
 .brand-name { font-family:var(--font-head); font-size:1.2rem; font-weight:800; color:var(--text-primary); }
 .brand-name span { color:var(--blue-400); }
