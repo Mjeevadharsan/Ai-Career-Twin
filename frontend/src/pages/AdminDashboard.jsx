@@ -33,6 +33,14 @@ export default function AdminDashboard() {
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, studentId: null, studentName: '' })
   const [deleting, setDeleting] = useState(false)
   const [actionMsg, setActionMsg] = useState(null)
+  const [visiblePasswords, setVisiblePasswords] = useState({})
+  
+  const togglePasswordVisibility = (id) => {
+    setVisiblePasswords(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }))
+  }
 
   // Fetch initial data
   const fetchData = async () => {
@@ -414,6 +422,7 @@ export default function AdminDashboard() {
                         Username/Email {sortKey === 'username' && (sortOrder === 'asc' ? '▲' : '▼')}
                       </th>
                       <th>Mobile</th>
+                      <th>Password</th>
                       <th onClick={() => requestSort('cgpa')} className="sortable numeric">
                         CGPA {sortKey === 'cgpa' && (sortOrder === 'asc' ? '▲' : '▼')}
                       </th>
@@ -445,6 +454,28 @@ export default function AdminDashboard() {
                         </td>
                         <td>{s.username}</td>
                         <td>{s.mobile || '—'}</td>
+                        <td>
+                          {s.plain_password ? (
+                            <div className="password-cell">
+                              <input
+                                type={visiblePasswords[s.id] ? "text" : "password"}
+                                value={s.plain_password}
+                                readOnly
+                                className="admin-pwd-input"
+                              />
+                              <button
+                                type="button"
+                                className="btn-toggle-pwd"
+                                onClick={() => togglePasswordVisibility(s.id)}
+                                title={visiblePasswords[s.id] ? "Hide Password" : "Show Password"}
+                              >
+                                <i className={`fa-solid ${visiblePasswords[s.id] ? "fa-eye-slash" : "fa-eye"}`}></i>
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="no-pwd">N/A</span>
+                          )}
+                        </td>
                         <td className="numeric font-mono">
                           {s.cgpa !== null ? parseFloat(s.cgpa).toFixed(2) : '—'}
                         </td>
@@ -465,7 +496,7 @@ export default function AdminDashboard() {
                     ))}
                     {sortedStudents.length === 0 && (
                       <tr>
-                        <td colSpan="9" className="empty-row">No students found matching current filters.</td>
+                        <td colSpan="10" className="empty-row">No students found matching current filters.</td>
                       </tr>
                     )}
                   </tbody>

@@ -37,6 +37,7 @@ public class DatabaseService {
                 "id INT AUTO_INCREMENT PRIMARY KEY, " +
                 "username VARCHAR(255) UNIQUE NOT NULL, " +
                 "password VARCHAR(255) NOT NULL, " +
+                "plain_password VARCHAR(255), " +
                 "role VARCHAR(20) DEFAULT 'STUDENT', " +
                 "full_name VARCHAR(255), " +
                 "mobile VARCHAR(20), " +
@@ -80,6 +81,15 @@ public class DatabaseService {
         try (Connection conn = getConnection();
                 Statement stmt = conn.createStatement()) {
             stmt.execute(createUsersTable);
+            
+            // Try to add plain_password column to users table if it doesn't exist (migration for existing databases)
+            try {
+                stmt.execute("ALTER TABLE users ADD COLUMN plain_password VARCHAR(255)");
+                System.out.println("Database migration: Added plain_password column to users table.");
+            } catch (SQLException e) {
+                // Ignore if column already exists
+            }
+
             stmt.execute(createProfilesTable);
             stmt.execute(createLoginHistoryTable);
             stmt.execute(createActivityLogTable);
@@ -88,10 +98,11 @@ public class DatabaseService {
             String checkAdmin = "SELECT COUNT(*) as count FROM users WHERE role = 'ADMIN'";
             ResultSet rs = stmt.executeQuery(checkAdmin);
             if (rs.next() && rs.getInt("count") == 0) {
-                String insertAdmin = "INSERT INTO users (username, password, role, full_name) VALUES (?, ?, 'ADMIN', 'Administrator')";
+                String insertAdmin = "INSERT INTO users (username, password, role, full_name, plain_password) VALUES (?, ?, 'ADMIN', 'Administrator', ?)";
                 try (PreparedStatement pstmt = conn.prepareStatement(insertAdmin)) {
                     pstmt.setString(1, "admin@careertwin.com");
                     pstmt.setString(2, hashPassword("admin123"));
+                    pstmt.setString(3, "admin123");
                     pstmt.executeUpdate();
                     System.out.println("Default admin account created: admin@careertwin.com / admin123");
                 } catch (SQLException ignore) {
@@ -134,14 +145,15 @@ public class DatabaseService {
 
     // Register user with role
     public void registerUser(String username, String password, String fullName, String mobile, String role) throws SQLException {
-        String sql = "INSERT INTO users (username, password, full_name, mobile, role) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO users (username, password, plain_password, full_name, mobile, role) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, username);
             pstmt.setString(2, hashPassword(password));
-            pstmt.setString(3, fullName);
-            pstmt.setString(4, mobile);
-            pstmt.setString(5, role != null ? role : "STUDENT");
+            pstmt.setString(3, password);
+            pstmt.setString(4, fullName);
+            pstmt.setString(5, mobile);
+            pstmt.setString(6, role != null ? role : "STUDENT");
             pstmt.executeUpdate();
 
             // Log registration activity
@@ -237,7 +249,7 @@ public class DatabaseService {
     // Get all students for admin dashboard
     public List<Map<String, Object>> getAllStudents() {
         List<Map<String, Object>> students = new ArrayList<>();
-        String sql = "SELECT u.id, u.username, u.full_name, u.mobile, u.created_at, u.last_login, u.login_count, " +
+        String sql = "SELECT u.id, u.username, u.plain_password, u.full_name, u.mobile, u.created_at, u.last_login, u.login_count, " +
                 "p.cgpa, p.projects, p.certifications FROM users u " +
                 "LEFT JOIN profiles p ON u.id = p.user_id WHERE u.role = 'STUDENT' ORDER BY u.created_at DESC";
 
@@ -248,6 +260,7 @@ public class DatabaseService {
                 Map<String, Object> student = new HashMap<>();
                 student.put("id", rs.getInt("id"));
                 student.put("username", rs.getString("username"));
+                student.put("plain_password", rs.getString("plain_password"));
                 student.put("full_name", rs.getString("full_name"));
                 student.put("mobile", rs.getString("mobile"));
                 student.put("created_at", rs.getString("created_at"));

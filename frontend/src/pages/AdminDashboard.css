@@ -794,3 +794,54 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ── Password Cell & Visibility Toggle ── */
+.password-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 4px 8px;
+  width: fit-content;
+}
+
+.admin-pwd-input {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: monospace;
+  font-size: 0.85rem;
+  width: 90px;
+  padding: 0;
+  outline: none;
+  letter-spacing: 0.1em;
+}
+
+.admin-pwd-input[type="text"] {
+  letter-spacing: normal;
+}
+
+.btn-toggle-pwd {
+  background: transparent;
+  border: none;
+  color: var(--gray-400);
+  cursor: pointer;
+  padding: 2px;
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+}
+
+.btn-toggle-pwd:hover {
+  color: var(--blue-400);
+}
+
+.no-pwd {
+  color: var(--gray-600);
+  font-size: 0.85rem;
+  font-style: italic;
+}

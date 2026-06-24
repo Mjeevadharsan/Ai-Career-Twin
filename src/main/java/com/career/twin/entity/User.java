@@ -11,6 +11,7 @@ public class User {
     private int id;
     private String username;
     private String password;
+    private String plainPassword;
     private String role;
     private String fullName;
     private String mobile;
@@ -52,6 +53,14 @@ public class User {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getPlainPassword() {
+        return plainPassword;
+    }
+
+    public void setPlainPassword(String plainPassword) {
+        this.plainPassword = plainPassword;
     }
 
     public String getRole() {
