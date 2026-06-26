@@ -104,13 +104,12 @@
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: #ffffff;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 3px;
-  box-shadow: 0 4px 16px rgba(255, 255, 255, 0.05);
+  padding: 0;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 

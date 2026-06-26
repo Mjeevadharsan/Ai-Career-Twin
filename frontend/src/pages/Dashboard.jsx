@@ -62,7 +62,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="dash-header">
         <div>
-          <h1 className="dash-title">Welcome back, <span className="gradient-text">{user?.username}</span></h1>
+          <h1 className="dash-title">Welcome back, <span className="gradient-text">{user?.fullName || user?.username}</span></h1>
           <p className="dash-sub">Here's your AI Career Twin analysis — CGPA: {parseFloat(data.cgpa).toFixed(2)}</p>
         </div>
         <Link to="/profile" className="btn btn-outline">

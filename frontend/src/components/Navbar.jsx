@@ -48,7 +48,7 @@ export default function Navbar() {
             <>
               <Link to={isAdmin ? "/admin/dashboard" : "/profile"} className="user-badge">
                 <i className={`fa-solid ${isAdmin ? 'fa-user-shield' : 'fa-user-astronaut'}`} />
-                <span>{user.username}</span>
+                <span>{user.fullName || user.username}</span>
               </Link>
               <button onClick={handleLogout} className="btn btn-outline btn-sm">
                 <i className="fa-solid fa-arrow-right-from-bracket" /> Logout

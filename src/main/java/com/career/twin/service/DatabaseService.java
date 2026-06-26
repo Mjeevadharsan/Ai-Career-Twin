@@ -81,8 +81,9 @@ public class DatabaseService {
         try (Connection conn = getConnection();
                 Statement stmt = conn.createStatement()) {
             stmt.execute(createUsersTable);
-            
-            // Try to add plain_password column to users table if it doesn't exist (migration for existing databases)
+
+            // Try to add plain_password column to users table if it doesn't exist
+            // (migration for existing databases)
             try {
                 stmt.execute("ALTER TABLE users ADD COLUMN plain_password VARCHAR(255)");
                 System.out.println("Database migration: Added plain_password column to users table.");
@@ -144,7 +145,8 @@ public class DatabaseService {
     }
 
     // Register user with role
-    public void registerUser(String username, String password, String fullName, String mobile, String role) throws SQLException {
+    public void registerUser(String username, String password, String fullName, String mobile, String role)
+            throws SQLException {
         String sql = "INSERT INTO users (username, password, plain_password, full_name, mobile, role) VALUES (?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -249,7 +251,8 @@ public class DatabaseService {
     // Get all students for admin dashboard
     public List<Map<String, Object>> getAllStudents() {
         List<Map<String, Object>> students = new ArrayList<>();
-        String sql = "SELECT u.id, u.username, u.plain_password, u.full_name, u.mobile, u.created_at, u.last_login, u.login_count, " +
+        String sql = "SELECT u.id, u.username, u.plain_password, u.full_name, u.mobile, u.created_at, u.last_login, u.login_count, "
+                +
                 "p.cgpa, p.projects, p.certifications FROM users u " +
                 "LEFT JOIN profiles p ON u.id = p.user_id WHERE u.role = 'STUDENT' ORDER BY u.created_at DESC";
 
@@ -323,7 +326,8 @@ public class DatabaseService {
 
             // Total logins today
             ResultSet rs3 = stmt
-                    .executeQuery("SELECT COUNT(*) as count FROM login_history WHERE CAST(login_time AS DATE) = CURRENT_DATE");
+                    .executeQuery(
+                            "SELECT COUNT(*) as count FROM login_history WHERE CAST(login_time AS DATE) = CURRENT_DATE");
             if (rs3.next())
                 stats.put("logins_today", rs3.getInt("count"));
 
@@ -400,7 +404,8 @@ public class DatabaseService {
 
         // MySQL/H2 upsert using INSERT ... ON DUPLICATE KEY UPDATE
         String sql = "INSERT INTO profiles " +
-                "(user_id, cgpa, projects, certifications, apt_analytical, apt_coding, apt_communication, apt_problem_solving, skills, interests) " +
+                "(user_id, cgpa, projects, certifications, apt_analytical, apt_coding, apt_communication, apt_problem_solving, skills, interests) "
+                +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
                 "ON DUPLICATE KEY UPDATE " +
                 "cgpa=VALUES(cgpa), projects=VALUES(projects), certifications=VALUES(certifications), " +
