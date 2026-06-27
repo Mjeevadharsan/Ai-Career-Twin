@@ -4,6 +4,16 @@ echo   AI Career Twin - Application Starter
 echo ========================================
 echo.
 
+:: Load local environment variables from .env if present
+if exist .env (
+    echo [System] Loading environment variables from .env...
+    for /f "usebackq tokens=1* delims==" %%i in (".env") do (
+        set %%i=%%j
+    )
+)
+echo.
+
+
 echo [1/2] Starting Spring Boot Backend...
 echo       Port: 5000
 echo       URL: http://localhost:5000

@@ -1,23 +1,31 @@
 package com.career.twin.service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 
 import java.security.SecureRandom;
 import java.util.UUID;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class EmailOtpService {
 
-    private final JavaMailSender mailSender;
+    @Value("${brevo.api.key}")
+    private String apiKey;
 
-    @Value("${spring.mail.username}")
+    @Value("${brevo.sender.email}")
     private String senderEmail;
+
+    @Value("${brevo.sender.name}")
+    private String senderName;
 
     // In-memory OTP storage: email -> OtpEntry
     private final ConcurrentHashMap<String, OtpEntry> otpStore = new ConcurrentHashMap<>();
@@ -30,10 +38,7 @@ public class EmailOtpService {
     private static final long MIN_RESEND_INTERVAL_MS = 30 * 1000; // 30 seconds between resends
 
     private final SecureRandom random = new SecureRandom();
-
-    public EmailOtpService(JavaMailSender mailSender) {
-        this.mailSender = mailSender;
-    }
+    private final RestTemplate restTemplate = new RestTemplate();
 
     // ──────── OTP Entry ────────
     private static class OtpEntry {
@@ -55,7 +60,7 @@ public class EmailOtpService {
     }
 
     // ──────── Generate & Send OTP ────────
-    public void generateAndSendOtp(String email) throws MessagingException {
+    public void generateAndSendOtp(String email) throws Exception {
         // Rate-limit: prevent resending within 30 seconds
         OtpEntry existing = otpStore.get(email.toLowerCase());
         if (existing != null && !existing.isExpired()) {
@@ -77,9 +82,9 @@ public class EmailOtpService {
         otpStore.put(email.toLowerCase(), new OtpEntry(otp, expiresAt));
 
         try {
-            // Send email
+            // Send email via Brevo HTTP API
             sendOtpEmail(email, otp);
-        } catch (MessagingException | RuntimeException e) {
+        } catch (Exception e) {
             // Remove from store if sending failed so they aren't locked out/rate-limited
             otpStore.remove(email.toLowerCase());
             throw e;
@@ -132,14 +137,26 @@ public class EmailOtpService {
         return false;
     }
 
-    // ──────── Send HTML Email ────────
-    private void sendOtpEmail(String toEmail, String otp) throws MessagingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+    // ──────── Send HTML Email via Brevo API ────────
+    private void sendOtpEmail(String toEmail, String otp) throws Exception {
+        String brevoUrl = "https://api.brevo.com/v3/smtp/email";
 
-        helper.setFrom(senderEmail);
-        helper.setTo(toEmail);
-        helper.setSubject("AI Career Twin — Email Verification Code");
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("api-key", apiKey);
+
+        Map<String, Object> body = new HashMap<>();
+        
+        Map<String, String> senderMap = new HashMap<>();
+        senderMap.put("name", senderName);
+        senderMap.put("email", senderEmail);
+        body.put("sender", senderMap);
+
+        Map<String, String> recipientMap = new HashMap<>();
+        recipientMap.put("email", toEmail);
+        body.put("to", List.of(recipientMap));
+
+        body.put("subject", "AI Career Twin — Email Verification Code");
 
         String htmlContent = """
             <!DOCTYPE html>
@@ -192,8 +209,18 @@ public class EmailOtpService {
             </body>
             </html>
             """.formatted(otp);
+        body.put("htmlContent", htmlContent);
 
-        helper.setText(htmlContent, true);
-        mailSender.send(message);
+        HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(brevoUrl, requestEntity, String.class);
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                throw new RuntimeException("Brevo API error: " + response.getStatusCode() + " - " + response.getBody());
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to call Brevo HTTP API: " + e.getMessage());
+            throw new RuntimeException("Mail delivery failed via HTTP API. Please check server logs.", e);
+        }
     }
 }
