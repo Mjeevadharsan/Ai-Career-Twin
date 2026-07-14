@@ -3,6 +3,7 @@ services:
   - type: web
     name: ai-career-twin
     env: java
+    rootDir: backend
     buildCommand: mvn clean package -DskipTests
     startCommand: java -jar target/twin-1.0.0.jar
     disk:
@@ -14,8 +15,9 @@ services:
   - type: web
     name: ai-career-twin-1
     env: static
-    buildCommand: cd frontend && npm install && npm run build
-    staticPublishPath: frontend/dist
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
     envVars:
       - key: VITE_API_URL
         value: https://ai-career-twin.onrender.com
