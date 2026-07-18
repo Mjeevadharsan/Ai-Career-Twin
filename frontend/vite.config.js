@@ -13,7 +13,7 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: '../src/main/resources/static',
+    outDir: process.env.RENDER ? 'dist' : '../backend/src/main/resources/static',
     emptyOutDir: true,
   }
 })
