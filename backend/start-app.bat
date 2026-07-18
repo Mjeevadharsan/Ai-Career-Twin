@@ -30,7 +30,7 @@ echo       Port: 3000
 echo       URL: http://localhost:3000
 echo.
 
-start cmd /k "title React Frontend (Port 3000) && cd frontend && npm run dev"
+start cmd /k "title React Frontend (Port 3000) && cd ../frontend && npm run dev"
 
 echo.
 echo ========================================
