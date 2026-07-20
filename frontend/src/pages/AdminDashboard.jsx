@@ -627,6 +627,9 @@ export default function AdminDashboard() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
       {/* --- STUDENT FULL DETAILS MODAL --- */}
       {selectedStudent && (
         <div className="admin-modal-overlay">
