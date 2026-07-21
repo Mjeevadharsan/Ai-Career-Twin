@@ -26,6 +26,7 @@ export default function AdminDashboard() {
   // Search / Filters
   const [searchTerm, setSearchTerm] = useState('')
   const [profileFilter, setProfileFilter] = useState('all') // 'all', 'completed', 'pending'
+  const [dateFilter, setDateFilter] = useState('all') // 'all', 'today', '7days', '30days'
   const [sortKey, setSortKey] = useState('created_at')
   const [sortOrder, setSortOrder] = useState('desc')
   
@@ -125,9 +126,26 @@ export default function AdminDashboard() {
       (s.full_name && s.full_name.toLowerCase().includes(term)) ||
       (s.mobile && s.mobile.toLowerCase().includes(term))
       
-    if (profileFilter === 'completed') return matchesSearch && s.has_profile
-    if (profileFilter === 'pending') return matchesSearch && !s.has_profile
-    return matchesSearch
+    let matchesProfile = true
+    if (profileFilter === 'completed') matchesProfile = s.has_profile
+    if (profileFilter === 'pending') matchesProfile = !s.has_profile
+
+    let matchesDate = true
+    if (dateFilter !== 'all' && s.created_at) {
+      const created = new Date(s.created_at)
+      const now = new Date()
+      if (dateFilter === 'today') {
+        matchesDate = created.toDateString() === now.toDateString()
+      } else if (dateFilter === '7days') {
+        const diffDays = Math.ceil(Math.abs(now - created) / (1000 * 60 * 60 * 24))
+        matchesDate = diffDays <= 7
+      } else if (dateFilter === '30days') {
+        const diffDays = Math.ceil(Math.abs(now - created) / (1000 * 60 * 60 * 24))
+        matchesDate = diffDays <= 30
+      }
+    }
+
+    return matchesSearch && matchesProfile && matchesDate
   })
 
   const sortedStudents = [...filteredStudents].sort((a, b) => {
@@ -399,6 +417,16 @@ export default function AdminDashboard() {
                 </div>
                 
                 <div className="filter-group">
+                  <label>Registration Period:</label>
+                  <select value={dateFilter} onChange={e => setDateFilter(e.target.value)}>
+                    <option value="all">All Days (All History)</option>
+                    <option value="today">Registered Today</option>
+                    <option value="7days">Last 7 Days</option>
+                    <option value="30days">Last 30 Days</option>
+                  </select>
+                </div>
+
+                <div className="filter-group">
                   <label>Twin Status:</label>
                   <select value={profileFilter} onChange={e => setProfileFilter(e.target.value)}>
                     <option value="all">All Students</option>
@@ -435,6 +463,9 @@ export default function AdminDashboard() {
                       </th>
                       <th onClick={() => requestSort('login_count')} className="sortable numeric">
                         Logins {sortKey === 'login_count' && (sortOrder === 'asc' ? '▲' : '▼')}
+                      </th>
+                      <th onClick={() => requestSort('created_at')} className="sortable">
+                        Registered Date {sortKey === 'created_at' && (sortOrder === 'asc' ? '▲' : '▼')}
                       </th>
                       <th onClick={() => requestSort('last_login')} className="sortable">
                         Last Active {sortKey === 'last_login' && (sortOrder === 'asc' ? '▲' : '▼')}
@@ -483,6 +514,7 @@ export default function AdminDashboard() {
                         <td className="numeric font-mono">{s.projects !== null ? s.projects : '—'}</td>
                         <td className="numeric font-mono">{s.certifications !== null ? s.certifications : '—'}</td>
                         <td className="numeric font-mono">{s.login_count}</td>
+                        <td className="font-small">{formatDate(s.created_at)}</td>
                         <td className="font-small">{formatDate(s.last_login)}</td>
                         <td className="action-col">
                           <div className="action-btns-group">
@@ -506,7 +538,7 @@ export default function AdminDashboard() {
                     ))}
                     {sortedStudents.length === 0 && (
                       <tr>
-                        <td colSpan="10" className="empty-row">No students found matching current filters.</td>
+                        <td colSpan="11" className="empty-row">No students found matching current filters.</td>
                       </tr>
                     )}
                   </tbody>
