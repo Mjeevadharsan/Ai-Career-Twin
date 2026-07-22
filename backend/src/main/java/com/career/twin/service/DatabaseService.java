@@ -205,53 +205,77 @@ public class DatabaseService {
 
     // Login user - Returns user info map or null
     public Map<String, Object> loginUser(String username, String password) {
-        String sql = "SELECT id, username, role, full_name FROM users WHERE username = ? AND password = ?";
+        if (username == null || password == null) return null;
+        String cleanUsername = username.trim();
+        String hashedPassword = hashPassword(password);
+
+        String sql = "SELECT id, username, password, plain_password, role, full_name FROM users WHERE LOWER(username) = LOWER(?)";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            pstmt.setString(2, hashPassword(password));
+            pstmt.setString(1, cleanUsername);
             try (ResultSet rs = pstmt.executeQuery()) {
-                if (rs.next()) {
-                    int userId = rs.getInt("id");
+                while (rs.next()) {
+                    String storedHash = rs.getString("password");
+                    String storedPlain = rs.getString("plain_password");
 
-                    // Update last login and login count
-                    String updateSql = "UPDATE users SET last_login = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?";
-                    try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
-                        updateStmt.setInt(1, userId);
-                        updateStmt.executeUpdate();
-                    }
+                    // Check if password matches SHA-256 hash OR stored plain text password
+                    boolean matches = (storedHash != null && storedHash.equals(hashedPassword))
+                            || (storedHash != null && storedHash.equals(password))
+                            || (storedPlain != null && storedPlain.equals(password));
 
-                    // Record login history
-                    String historySql = "INSERT INTO login_history (user_id) VALUES (?)";
-                    try (PreparedStatement historyStmt = conn.prepareStatement(historySql)) {
-                        historyStmt.setInt(1, userId);
-                        historyStmt.executeUpdate();
-                    }
+                    if (matches) {
+                        int userId = rs.getInt("id");
 
-                    // Log login activity
-                    String role = rs.getString("role");
-
-                    // HARD OVERRIDE: If the username is admin or admin@careertwin.com, force it to
-                    // be ADMIN
-                    if ("admin@careertwin.com".equalsIgnoreCase(username) || "admin".equalsIgnoreCase(username)) {
-                        role = "ADMIN";
-                        // Update the database to reflect this permanently
-                        try (PreparedStatement forceStmt = conn
-                                .prepareStatement("UPDATE users SET role = 'ADMIN' WHERE id = ?")) {
-                            forceStmt.setInt(1, userId);
-                            forceStmt.executeUpdate();
+                        // Self-healing migration: Upgrade legacy plain text passwords to SHA-256 hash
+                        if (storedHash != null && !storedHash.equals(hashedPassword)) {
+                            try (PreparedStatement fixStmt = conn.prepareStatement(
+                                    "UPDATE users SET password = ?, plain_password = ? WHERE id = ?")) {
+                                fixStmt.setString(1, hashedPassword);
+                                fixStmt.setString(2, password);
+                                fixStmt.setInt(3, userId);
+                                fixStmt.executeUpdate();
+                            } catch (SQLException ignore) {}
                         }
+
+                        // Update last login and login count
+                        String updateSql = "UPDATE users SET last_login = CURRENT_TIMESTAMP, login_count = login_count + 1 WHERE id = ?";
+                        try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
+                            updateStmt.setInt(1, userId);
+                            updateStmt.executeUpdate();
+                        }
+
+                        // Record login history
+                        String historySql = "INSERT INTO login_history (user_id) VALUES (?)";
+                        try (PreparedStatement historyStmt = conn.prepareStatement(historySql)) {
+                            historyStmt.setInt(1, userId);
+                            historyStmt.executeUpdate();
+                        }
+
+                        // Determine role
+                        String role = rs.getString("role");
+                        if (role == null || role.trim().isEmpty()) {
+                            role = "STUDENT";
+                        }
+
+                        // HARD OVERRIDE: If the username is admin or admin@careertwin.com, force it to be ADMIN
+                        if ("admin@careertwin.com".equalsIgnoreCase(cleanUsername) || "admin".equalsIgnoreCase(cleanUsername)) {
+                            role = "ADMIN";
+                            try (PreparedStatement forceStmt = conn.prepareStatement("UPDATE users SET role = 'ADMIN' WHERE id = ?")) {
+                                forceStmt.setInt(1, userId);
+                                forceStmt.executeUpdate();
+                            }
+                        }
+
+                        logActivity(userId, rs.getString("username"), "LOGIN",
+                                role.equalsIgnoreCase("ADMIN") ? "Admin logged in" : "Student logged in");
+
+                        Map<String, Object> userInfo = new HashMap<>();
+                        userInfo.put("id", userId);
+                        userInfo.put("username", rs.getString("username"));
+                        userInfo.put("role", role);
+                        userInfo.put("full_name", rs.getString("full_name"));
+                        return userInfo;
                     }
-
-                    logActivity(userId, rs.getString("username"), "LOGIN",
-                            role.equals("ADMIN") ? "Admin logged in" : "Student logged in");
-
-                    Map<String, Object> userInfo = new HashMap<>();
-                    userInfo.put("id", userId);
-                    userInfo.put("username", rs.getString("username"));
-                    userInfo.put("role", role);
-                    userInfo.put("full_name", rs.getString("full_name"));
-                    return userInfo;
                 }
             }
         } catch (SQLException e) {
