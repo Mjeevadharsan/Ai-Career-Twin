@@ -70,14 +70,16 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchData()
     
-    // Real-time Activity Monitoring & Stats Polling every 5 seconds
+    // Real-time Activity Monitoring & Login History Polling every 5 seconds
     const interval = setInterval(async () => {
       try {
-        const [statsRes, activitiesRes] = await Promise.all([
+        const [statsRes, historyRes, activitiesRes] = await Promise.all([
           api.get('/admin/stats'),
+          api.get('/admin/login-history?limit=500'),
           api.get('/admin/activities?limit=500')
         ])
         setStats(statsRes.data)
+        setLoginHistory(historyRes.data)
         setActivities(activitiesRes.data)
       } catch (err) {
         console.error('Polling error:', err)

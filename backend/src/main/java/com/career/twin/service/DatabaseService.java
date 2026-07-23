@@ -412,16 +412,20 @@ public class DatabaseService {
     // Get login history for admin
     public List<Map<String, Object>> getLoginHistory(int limit) {
         List<Map<String, Object>> history = new ArrayList<>();
-        String sql = "SELECT lh.login_time, u.username, u.full_name, u.role " +
-                "FROM login_history lh JOIN users u ON lh.user_id = u.id " +
-                "ORDER BY lh.login_time DESC LIMIT ?";
+        String sql = "SELECT lh.id, lh.login_time, " +
+                "COALESCE(u.username, 'System Account') as username, " +
+                "COALESCE(u.full_name, 'System User') as full_name, " +
+                "COALESCE(u.role, 'STUDENT') as role " +
+                "FROM login_history lh LEFT JOIN users u ON lh.user_id = u.id " +
+                "ORDER BY lh.login_time DESC, lh.id DESC LIMIT ?";
 
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, limit);
+            pstmt.setInt(1, limit <= 0 ? 500 : limit);
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
                     Map<String, Object> record = new HashMap<>();
+                    record.put("id", rs.getInt("id"));
                     record.put("login_time", rs.getString("login_time"));
                     record.put("username", rs.getString("username"));
                     record.put("full_name", rs.getString("full_name"));
