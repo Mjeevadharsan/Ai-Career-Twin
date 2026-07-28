@@ -9,17 +9,14 @@ export function AuthProvider({ children }) {
 
   // Restore session from localStorage on mount
   useEffect(() => {
-    const token    = localStorage.getItem('auth_token')
-    const saved    = localStorage.getItem('auth_user')
+    const token = localStorage.getItem('auth_token')
+    const saved = localStorage.getItem('auth_user')
     if (token && saved) {
       try {
         setUser(JSON.parse(saved))
-        setLoading(false)
-        return
-      } catch { /* fall through to API check */ }
+      } catch { /* ignore parse error */ }
     }
 
-    // If token exists try to verify via /profile
     if (token) {
       api.get('/profile')
         .then(res => {
@@ -31,10 +28,13 @@ export function AuthProvider({ children }) {
           setUser(u)
           localStorage.setItem('auth_user', JSON.stringify(u))
         })
-        .catch(() => {
-          localStorage.removeItem('auth_token')
-          localStorage.removeItem('auth_user')
-          setUser(null)
+        .catch((err) => {
+          // Only clear session if server explicitly returned 401 Unauthorized
+          if (err.response?.status === 401) {
+            localStorage.removeItem('auth_token')
+            localStorage.removeItem('auth_user')
+            setUser(null)
+          }
         })
         .finally(() => setLoading(false))
     } else {

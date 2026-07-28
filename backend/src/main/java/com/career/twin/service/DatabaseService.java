@@ -162,10 +162,11 @@ public class DatabaseService {
 
     // Check if a user with the given username/email already exists
     public boolean isUserExists(String username) {
-        String sql = "SELECT COUNT(*) as count FROM users WHERE username = ?";
+        if (username == null || username.trim().isEmpty()) return false;
+        String sql = "SELECT COUNT(*) as count FROM users WHERE LOWER(username) = LOWER(?)";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
+            pstmt.setString(1, username.trim());
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     return rs.getInt("count") > 0;
@@ -181,20 +182,21 @@ public class DatabaseService {
     // Register user with role
     public void registerUser(String username, String password, String fullName, String mobile, String role)
             throws SQLException {
+        String cleanUsername = username != null ? username.trim().toLowerCase() : "";
         String sql = "INSERT INTO users (username, password, plain_password, full_name, mobile, role, created_at, last_login) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)";
         try (Connection conn = getConnection();
                 PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, username);
+            pstmt.setString(1, cleanUsername);
             pstmt.setString(2, hashPassword(password));
             pstmt.setString(3, password);
-            pstmt.setString(4, fullName);
-            pstmt.setString(5, mobile);
+            pstmt.setString(4, fullName != null ? fullName.trim() : null);
+            pstmt.setString(5, mobile != null ? mobile.trim() : null);
             pstmt.setString(6, role != null ? role : "STUDENT");
             pstmt.executeUpdate();
 
             // Log registration activity
-            logActivity(null, username, "REGISTRATION", "New student registered: "
-                    + (fullName != null && !fullName.trim().isEmpty() ? fullName : username));
+            logActivity(null, cleanUsername, "REGISTRATION", "New student registered: "
+                    + (fullName != null && !fullName.trim().isEmpty() ? fullName : cleanUsername));
         }
     }
 

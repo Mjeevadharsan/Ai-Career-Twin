@@ -300,14 +300,14 @@ export default function Login() {
         token
       )
 
-      setMsg({ type: 'success', text: '✓ Email verified & account created! Switching to login…' })
+      setMsg({ type: 'success', text: '✓ Email verified & account created! Logging you in automatically…' })
 
-      // Auto-prefill and switch back to login
-      setLoginForm({ username: regForm.email.trim(), password: regForm.password })
+      // Auto-login immediately and redirect to dashboard
+      await login(regForm.email.trim(), regForm.password)
       setTimeout(() => {
         resetOtpState()
-        setSearchParams({ mode: 'login' })
-      }, 2000)
+        navigate('/dashboard')
+      }, 1000)
     } catch (err) {
       setMsg({ type: 'error', text: err.response?.data?.error || 'Verification failed. Please try again.' })
     } finally {

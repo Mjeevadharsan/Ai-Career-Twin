@@ -110,7 +110,7 @@ function OtpBoxes({ value, onChange }) {
 
 // ── Main Signup component ────────────────────────────────────────────────────
 export default function Signup() {
-  const { register } = useAuth()
+  const { register, login } = useAuth()
   const navigate     = useNavigate()
 
   // Step: 1 = details form, 2 = OTP verify, 3 = success
@@ -232,8 +232,9 @@ export default function Signup() {
       await register(form.email.trim(), form.password, form.name.trim(), fullMobile.trim(), token)
 
       setStep(3)
-      setMsg({ type: 'success', text: 'Account created successfully!' })
-      setTimeout(() => navigate('/login'), 2200)
+      setMsg({ type: 'success', text: 'Account created & verified! Logging you in automatically…' })
+      await login(form.email.trim(), form.password)
+      setTimeout(() => navigate('/dashboard'), 1500)
     } catch (err) {
       const errMsg = err.response?.data?.error || 'Verification failed. Please try again.'
       setMsg({ type: 'error', text: errMsg })
