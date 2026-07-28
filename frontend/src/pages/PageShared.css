@@ -1,4 +1,4 @@
-.shared-page { max-width: 1300px; margin: 0 auto; padding: 32px; }
+.shared-page { max-width: 1300px; margin: 0 auto; padding: 96px 32px 32px; }
 
 .page-loader {
   min-height: 70vh; display: flex; flex-direction: column;

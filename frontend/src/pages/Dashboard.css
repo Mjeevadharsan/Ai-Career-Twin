@@ -1,4 +1,4 @@
-.dashboard { max-width: 1300px; margin: 0 auto; padding: 32px; }
+.dashboard { max-width: 1300px; margin: 0 auto; padding: 96px 32px 32px; }
 
 .dash-loader, .dash-empty {
   min-height: 70vh; display: flex; flex-direction: column;
