@@ -6,6 +6,7 @@ import CareerCard   from '../components/CareerCard'
 import SkillGapCard from '../components/SkillGapCard'
 import CourseCard   from '../components/CourseCard'
 import ProjectCard  from '../components/ProjectCard'
+import UserAvatar   from '../components/UserAvatar'
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts'
 import './Dashboard.css'
 
@@ -61,9 +62,12 @@ export default function Dashboard() {
     <div className="dashboard">
       {/* Header */}
       <div className="dash-header">
-        <div>
-          <h1 className="dash-title">Welcome back, <span className="gradient-text">{user?.fullName || user?.username}</span></h1>
-          <p className="dash-sub">Here's your AI Career Twin analysis — CGPA: {parseFloat(data.cgpa).toFixed(2)}</p>
+        <div style={{ display:'flex', alignItems:'center', gap:'16px' }}>
+          <UserAvatar email={user?.username} name={user?.fullName} size={54} />
+          <div>
+            <h1 className="dash-title">Welcome back, <span className="gradient-text">{user?.fullName || user?.username}</span></h1>
+            <p className="dash-sub">Here's your AI Career Twin analysis — CGPA: {parseFloat(data.cgpa).toFixed(2)}</p>
+          </div>
         </div>
         <Link to="/profile" className="btn btn-outline">
           <i className="fa-solid fa-user-pen"/> Update Profile
