@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, Radar } from 'recharts'
 import { useAuth } from '../context/AuthContext'
 import { getProfile } from '../services/profileService'
 import CareerCard from '../components/CareerCard'
