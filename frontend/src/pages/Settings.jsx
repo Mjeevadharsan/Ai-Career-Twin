@@ -339,7 +339,7 @@ export default function Settings() {
                 {[
                   { label: 'Project Name', value: 'AI Career Twin', icon: 'fa-graduation-cap' },
                   { label: 'Course Code', value: 'B.E. Computer Science & Engineering', icon: 'fa-book-open' },
-                  { label: 'Academic Session', value: 'Academic Session 2026', icon: 'fa-calendar-days' },
+                  { label: 'Academic Session', value: 'Final Year Project – 2026', icon: 'fa-calendar-days' },
                   { label: 'Research Scope', value: 'AI · ML · Career Guidance · Data Analytics', icon: 'fa-magnifying-glass' },
                   { label: 'Backend Database', value: 'Java Spring Boot + MySQL / SQLite', icon: 'fa-database' },
                   { label: 'ML Algorithm', value: 'K-Nearest Neighbors (K=15 Classifier)', icon: 'fa-circle-nodes' }

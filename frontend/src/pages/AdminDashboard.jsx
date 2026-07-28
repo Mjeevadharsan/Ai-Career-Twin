@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import api from '../services/api'
-import UserAvatar from '../components/UserAvatar'
 import './AdminDashboard.css'
 
 export default function AdminDashboard() {
@@ -27,13 +26,11 @@ export default function AdminDashboard() {
   // Search / Filters
   const [searchTerm, setSearchTerm] = useState('')
   const [profileFilter, setProfileFilter] = useState('all') // 'all', 'completed', 'pending'
-  const [dateFilter, setDateFilter] = useState('all') // 'all', 'today', '7days', '30days'
   const [sortKey, setSortKey] = useState('created_at')
   const [sortOrder, setSortOrder] = useState('desc')
   
-  // Deletion Modal & Detail View State
+  // Deletion Modal State
   const [deleteConfirm, setDeleteConfirm] = useState({ open: false, studentId: null, studentName: '' })
-  const [selectedStudent, setSelectedStudent] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [actionMsg, setActionMsg] = useState(null)
   const [visiblePasswords, setVisiblePasswords] = useState({})
@@ -51,8 +48,8 @@ export default function AdminDashboard() {
       const [statsRes, studentsRes, historyRes, activitiesRes] = await Promise.all([
         api.get('/admin/stats'),
         api.get('/admin/students'),
-        api.get('/admin/login-history?limit=500'),
-        api.get('/admin/activities?limit=500')
+        api.get('/admin/login-history?limit=30'),
+        api.get('/admin/activities?limit=35')
       ])
       
       setStats(statsRes.data)
@@ -70,16 +67,14 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetchData()
     
-    // Real-time Activity Monitoring & Login History Polling every 5 seconds
+    // Real-time Activity Monitoring & Stats Polling every 5 seconds
     const interval = setInterval(async () => {
       try {
-        const [statsRes, historyRes, activitiesRes] = await Promise.all([
+        const [statsRes, activitiesRes] = await Promise.all([
           api.get('/admin/stats'),
-          api.get('/admin/login-history?limit=500'),
-          api.get('/admin/activities?limit=500')
+          api.get('/admin/activities?limit=35')
         ])
         setStats(statsRes.data)
-        setLoginHistory(historyRes.data)
         setActivities(activitiesRes.data)
       } catch (err) {
         console.error('Polling error:', err)
@@ -129,26 +124,9 @@ export default function AdminDashboard() {
       (s.full_name && s.full_name.toLowerCase().includes(term)) ||
       (s.mobile && s.mobile.toLowerCase().includes(term))
       
-    let matchesProfile = true
-    if (profileFilter === 'completed') matchesProfile = s.has_profile
-    if (profileFilter === 'pending') matchesProfile = !s.has_profile
-
-    let matchesDate = true
-    if (dateFilter !== 'all' && s.created_at) {
-      const created = new Date(s.created_at)
-      const now = new Date()
-      if (dateFilter === 'today') {
-        matchesDate = created.toDateString() === now.toDateString()
-      } else if (dateFilter === '7days') {
-        const diffDays = Math.ceil(Math.abs(now - created) / (1000 * 60 * 60 * 24))
-        matchesDate = diffDays <= 7
-      } else if (dateFilter === '30days') {
-        const diffDays = Math.ceil(Math.abs(now - created) / (1000 * 60 * 60 * 24))
-        matchesDate = diffDays <= 30
-      }
-    }
-
-    return matchesSearch && matchesProfile && matchesDate
+    if (profileFilter === 'completed') return matchesSearch && s.has_profile
+    if (profileFilter === 'pending') return matchesSearch && !s.has_profile
+    return matchesSearch
   })
 
   const sortedStudents = [...filteredStudents].sort((a, b) => {
@@ -202,7 +180,9 @@ export default function AdminDashboard() {
         </div>
         
         <div className="admin-profile-section">
-          <UserAvatar email={user?.username || 'admin@careertwin.com'} name={user?.fullName || 'Administrator'} size={42} />
+          <div className="admin-avatar">
+            <i className="fa-solid fa-user-tie"></i>
+          </div>
           <div className="admin-meta">
             <h4>{user?.fullName || 'Administrator'}</h4>
             <span>{user?.username}</span>
@@ -312,20 +292,20 @@ export default function AdminDashboard() {
 
               <div className="admin-stat-card glass-card border-green">
                 <div className="stat-head">
-                  <span>Total System Logins</span>
+                  <span>Active Logins Today</span>
                   <i className="fa-solid fa-bolt color-green"></i>
                 </div>
-                <div className="stat-number">{stats.total_logins !== undefined ? stats.total_logins : (stats.logins_today || 0)}</div>
-                <div className="stat-foot">{stats.logins_today || 0} sessions today • {stats.total_logins || 0} total all-time</div>
+                <div className="stat-number">{stats.logins_today}</div>
+                <div className="stat-foot">Authentication sessions recorded today</div>
               </div>
 
               <div className="admin-stat-card glass-card border-orange">
                 <div className="stat-head">
-                  <span>Registered Signups</span>
+                  <span>Signups Today</span>
                   <i className="fa-solid fa-user-plus color-orange"></i>
                 </div>
-                <div className="stat-number">{stats.total_students || 0}</div>
-                <div className="stat-foot">{stats.signups_today || 0} new signups today • {stats.total_students || 0} all-time</div>
+                <div className="stat-number">{stats.signups_today}</div>
+                <div className="stat-foot">New accounts registered in last 24h</div>
               </div>
             </div>
 
@@ -334,8 +314,8 @@ export default function AdminDashboard() {
               {/* Left Side: Recent Signups Table */}
               <div className="glass-card table-card">
                 <div className="card-header-row">
-                  <h3><i className="fa-solid fa-users text-accent"></i> Registered Student Directory ({students.length})</h3>
-                  <button className="btn-text" onClick={() => setActiveTab('students')}>Manage All Directory</button>
+                  <h3><i className="fa-solid fa-users text-accent"></i> Recently Registered</h3>
+                  <button className="btn-text" onClick={() => setActiveTab('students')}>View All Directory</button>
                 </div>
                 
                 <div className="table-responsive">
@@ -345,11 +325,10 @@ export default function AdminDashboard() {
                         <th>Student / Account</th>
                         <th>Registered On</th>
                         <th>Status</th>
-                        <th>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {students.map(s => (
+                      {students.slice(0, 5).map(s => (
                         <tr key={s.id}>
                           <td>
                             <div className="name-cell">
@@ -363,20 +342,11 @@ export default function AdminDashboard() {
                               {s.has_profile ? 'Twin Ready' : 'Pending Profile'}
                             </span>
                           </td>
-                          <td>
-                            <button 
-                              onClick={() => setSelectedStudent(s)} 
-                              className="btn-view"
-                              title="View Complete Student Details"
-                            >
-                              <i className="fa-solid fa-eye"></i>
-                            </button>
-                          </td>
                         </tr>
                       ))}
                       {students.length === 0 && (
                         <tr>
-                          <td colSpan="4" className="empty-row">No students found.</td>
+                          <td colSpan="3" className="empty-row">No students found.</td>
                         </tr>
                       )}
                     </tbody>
@@ -428,16 +398,6 @@ export default function AdminDashboard() {
                 </div>
                 
                 <div className="filter-group">
-                  <label>Registration Period:</label>
-                  <select value={dateFilter} onChange={e => setDateFilter(e.target.value)}>
-                    <option value="all">All Days (All History)</option>
-                    <option value="today">Registered Today</option>
-                    <option value="7days">Last 7 Days</option>
-                    <option value="30days">Last 30 Days</option>
-                  </select>
-                </div>
-
-                <div className="filter-group">
                   <label>Twin Status:</label>
                   <select value={profileFilter} onChange={e => setProfileFilter(e.target.value)}>
                     <option value="all">All Students</option>
@@ -475,9 +435,6 @@ export default function AdminDashboard() {
                       <th onClick={() => requestSort('login_count')} className="sortable numeric">
                         Logins {sortKey === 'login_count' && (sortOrder === 'asc' ? '▲' : '▼')}
                       </th>
-                      <th onClick={() => requestSort('created_at')} className="sortable">
-                        Registered Date {sortKey === 'created_at' && (sortOrder === 'asc' ? '▲' : '▼')}
-                      </th>
                       <th onClick={() => requestSort('last_login')} className="sortable">
                         Last Active {sortKey === 'last_login' && (sortOrder === 'asc' ? '▲' : '▼')}
                       </th>
@@ -489,7 +446,9 @@ export default function AdminDashboard() {
                       <tr key={s.id}>
                         <td>
                           <div className="student-profile-cell">
-                            <UserAvatar email={s.username} name={s.full_name} size={32} />
+                            <div className="student-icon">
+                              <i className="fa-solid fa-user-graduate"></i>
+                            </div>
                             <strong>{s.full_name || 'Not Filled'}</strong>
                           </div>
                         </td>
@@ -523,31 +482,21 @@ export default function AdminDashboard() {
                         <td className="numeric font-mono">{s.projects !== null ? s.projects : '—'}</td>
                         <td className="numeric font-mono">{s.certifications !== null ? s.certifications : '—'}</td>
                         <td className="numeric font-mono">{s.login_count}</td>
-                        <td className="font-small">{formatDate(s.created_at)}</td>
                         <td className="font-small">{formatDate(s.last_login)}</td>
                         <td className="action-col">
-                          <div className="action-btns-group">
-                            <button 
-                              onClick={() => setSelectedStudent(s)} 
-                              className="btn-view"
-                              title="View Complete Student Details"
-                            >
-                              <i className="fa-solid fa-eye"></i>
-                            </button>
-                            <button 
-                              onClick={() => handleDeleteClick(s)} 
-                              className="btn-delete"
-                              title="Delete Student Account"
-                            >
-                              <i className="fa-solid fa-trash-can"></i>
-                            </button>
-                          </div>
+                          <button 
+                            onClick={() => handleDeleteClick(s)} 
+                            className="btn-delete"
+                            title="Delete Student Account"
+                          >
+                            <i className="fa-solid fa-trash-can"></i>
+                          </button>
                         </td>
                       </tr>
                     ))}
                     {sortedStudents.length === 0 && (
                       <tr>
-                        <td colSpan="11" className="empty-row">No students found matching current filters.</td>
+                        <td colSpan="10" className="empty-row">No students found matching current filters.</td>
                       </tr>
                     )}
                   </tbody>
@@ -563,7 +512,7 @@ export default function AdminDashboard() {
             <div className="glass-card">
               <div className="card-header-row">
                 <h3><i className="fa-solid fa-clock-rotate-left text-accent"></i> Access Authentication History</h3>
-                <span className="info-lbl">All-Time Authentication History ({loginHistory.length} records)</span>
+                <span className="info-lbl">Recent 30 log records displayed</span>
               </div>
 
               <div className="table-responsive">
@@ -665,81 +614,6 @@ export default function AdminDashboard() {
                 ) : (
                   'Permanently Delete Student'
                 )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* --- STUDENT FULL DETAILS MODAL --- */}
-      {selectedStudent && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal glass-card student-detail-modal">
-            <div className="modal-header" style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-              <UserAvatar email={selectedStudent.username} name={selectedStudent.full_name} size={48} />
-              <div>
-                <h3 style={{ margin: 0 }}>{selectedStudent.full_name || 'Student Details'}</h3>
-                <span style={{ fontSize: '0.8rem', color: 'var(--gray-400)' }}>{selectedStudent.username}</span>
-              </div>
-            </div>
-            <div className="modal-body student-detail-body">
-              <div className="detail-section">
-                <h4><i className="fa-solid fa-user"></i> Account &amp; Identity</h4>
-                <div className="detail-grid">
-                  <div><span className="lbl">Full Name:</span> <strong>{selectedStudent.full_name || 'Not Provided'}</strong></div>
-                  <div><span className="lbl">Email / Username:</span> <strong>{selectedStudent.username}</strong></div>
-                  <div><span className="lbl">Mobile Number:</span> <strong>{selectedStudent.mobile || 'Not Provided'}</strong></div>
-                  <div><span className="lbl">Password:</span> <code>{selectedStudent.plain_password || 'Encrypted'}</code></div>
-                  <div><span className="lbl">Registered On:</span> {formatDate(selectedStudent.created_at)}</div>
-                  <div><span className="lbl">Last Active:</span> {formatDate(selectedStudent.last_login)}</div>
-                  <div><span className="lbl">Login Count:</span> {selectedStudent.login_count} sessions</div>
-                </div>
-              </div>
-
-              {selectedStudent.has_profile ? (
-                <div className="detail-section">
-                  <h4><i className="fa-solid fa-graduation-cap"></i> Academic &amp; Aptitude Profile</h4>
-                  <div className="detail-grid">
-                    <div><span className="lbl">CGPA:</span> <strong>{selectedStudent.cgpa}</strong></div>
-                    <div><span className="lbl">Projects:</span> <strong>{selectedStudent.projects}</strong></div>
-                    <div><span className="lbl">Certifications:</span> <strong>{selectedStudent.certifications}</strong></div>
-                    <div><span className="lbl">Analytical Aptitude:</span> <strong>{selectedStudent.apt_analytical !== null ? `${selectedStudent.apt_analytical}%` : '—'}</strong></div>
-                    <div><span className="lbl">Coding Aptitude:</span> <strong>{selectedStudent.apt_coding !== null ? `${selectedStudent.apt_coding}%` : '—'}</strong></div>
-                    <div><span className="lbl">Communication:</span> <strong>{selectedStudent.apt_communication !== null ? `${selectedStudent.apt_communication}%` : '—'}</strong></div>
-                    <div><span className="lbl">Problem Solving:</span> <strong>{selectedStudent.apt_problem_solving !== null ? `${selectedStudent.apt_problem_solving}%` : '—'}</strong></div>
-                  </div>
-
-                  {selectedStudent.skills && (
-                    <div className="detail-tags-group">
-                      <span className="lbl">Skills:</span>
-                      <div className="chips-row">
-                        {selectedStudent.skills.split(',').map((sk, idx) => (
-                          <span key={idx} className="chip-badge chip-blue">{sk.trim()}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedStudent.interests && (
-                    <div className="detail-tags-group">
-                      <span className="lbl">Interests:</span>
-                      <div className="chips-row">
-                        {selectedStudent.interests.split(',').map((it, idx) => (
-                          <span key={idx} className="chip-badge chip-purple">{it.trim()}</span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="pending-profile-notice">
-                  <i className="fa-solid fa-circle-info"></i> This student has registered but has not yet submitted their academic career assessment profile.
-                </div>
-              )}
-            </div>
-            <div className="modal-footer">
-              <button onClick={() => setSelectedStudent(null)} className="btn btn-primary btn-sm">
-                Close Details
               </button>
             </div>
           </div>

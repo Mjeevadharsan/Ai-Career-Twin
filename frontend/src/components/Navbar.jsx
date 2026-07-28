@@ -1,10 +1,7 @@
-import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import logo from '../assets/logo.png'
 import './Navbar.css'
-
-import UserAvatar from './UserAvatar'
 
 export default function Navbar() {
   const { user, logout } = useAuth()
@@ -12,7 +9,6 @@ export default function Navbar() {
   const location  = useLocation()
   const authPages = ['/login', '/signup', '/admin/dashboard']
   
-
   if (authPages.some(path => location.pathname.startsWith(path))) return null
 
   const handleLogout = async () => {
@@ -51,8 +47,8 @@ export default function Navbar() {
         <div className="nav-actions">
           {user ? (
             <>
-              <Link to={isAdmin ? "/admin/dashboard" : "/settings"} className="user-badge" title="Account Settings" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <UserAvatar email={user.username} name={user.fullName} size={30} />
+              <Link to={isAdmin ? "/admin/dashboard" : "/settings"} className="user-badge" title="Account Settings">
+                <i className={`fa-solid ${isAdmin ? 'fa-user-shield' : 'fa-user-astronaut'}`} />
                 <span>{user.fullName || user.username}</span>
               </Link>
               <button onClick={handleLogout} className="btn btn-outline btn-sm">

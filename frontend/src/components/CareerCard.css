@@ -2,14 +2,10 @@
   background: var(--card-bg); border: 1px solid var(--card-border);
   border-radius: var(--radius); padding: 18px 20px;
   display: flex; align-items: center; gap: 16px;
-  transition: transform var(--transition), border-color var(--transition), box-shadow var(--transition);
+  transition: transform var(--transition), border-color var(--transition);
   position: relative;
 }
-.career-card:hover { 
-  transform: translateY(-3px); 
-  border-color: var(--blue-400);
-  box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
-}
+.career-card:hover { transform: translateY(-3px); border-color: var(--blue-400); }
 .career-card.top-match {
   border-color: rgba(37,99,235,0.4);
   background: rgba(37,99,235,0.07);

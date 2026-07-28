@@ -2,14 +2,10 @@
 .admin-dashboard {
   display: flex;
   min-height: 100vh;
-  width: 100%;
-  max-width: 100vw;
-  overflow-x: hidden;
   background: #060913;
   color: var(--text-primary);
   font-family: var(--font-body);
   transition: padding var(--transition);
-  box-sizing: border-box;
 }
 
 /* Sidebar */
@@ -152,14 +148,10 @@
 /* Main Panel */
 .admin-main {
   flex: 1;
-  min-width: 0;
-  max-width: 100%;
   padding: 24px;
   margin-left: 260px;
   min-height: 100vh;
   transition: margin-left var(--transition);
-  box-sizing: border-box;
-  overflow-x: hidden;
 }
 
 /* Header */
@@ -313,7 +305,7 @@
 /* --- Overview Split & Directories --- */
 .overview-split {
   display: grid;
-  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  grid-template-columns: 1.5fr 1fr;
   gap: 24px;
 }
 
@@ -350,20 +342,11 @@
 /* Tables */
 .table-responsive {
   width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  box-sizing: border-box;
-  -webkit-overflow-scrolling: touch;
-}
-
-.full-table-responsive {
-  max-width: 100%;
   overflow-x: auto;
 }
 
 .admin-table {
   width: 100%;
-  min-width: 900px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -588,10 +571,10 @@
   color: var(--gray-400);
 }
 
-.btn-view {
-  background: rgba(59, 130, 246, 0.1);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  color: var(--blue-400);
+.btn-delete {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--danger);
   width: 34px;
   height: 34px;
   border-radius: 6px;
@@ -602,117 +585,14 @@
   transition: all var(--transition);
 }
 
-.btn-view:hover {
-  background: var(--blue-500);
+.btn-delete:hover {
+  background: var(--danger);
   color: white;
 }
 
-.action-btns-group {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-
 .action-col {
-  width: 100px;
+  width: 60px;
   text-align: center;
-}
-
-.student-detail-modal {
-  max-width: 620px !important;
-}
-
-.student-detail-body {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  max-height: 70vh;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.detail-section {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.detail-section h4 {
-  font-size: 0.95rem;
-  color: var(--blue-400);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  padding-bottom: 8px;
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px 16px;
-  font-size: 0.84rem;
-}
-
-.detail-grid .lbl {
-  color: var(--gray-400);
-  margin-right: 6px;
-}
-
-.detail-grid code {
-  background: rgba(255, 255, 255, 0.06);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: monospace;
-}
-
-.detail-tags-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 6px;
-}
-
-.chips-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.chip-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 3px 9px;
-  border-radius: 20px;
-}
-
-.chip-blue {
-  background: rgba(59, 130, 246, 0.15);
-  color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.25);
-}
-
-.chip-purple {
-  background: rgba(167, 139, 250, 0.15);
-  color: #c084fc;
-  border: 1px solid rgba(167, 139, 250, 0.25);
-}
-
-.pending-profile-notice {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.2);
-  color: var(--warning);
-  padding: 14px;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
 }
 
 .info-lbl {

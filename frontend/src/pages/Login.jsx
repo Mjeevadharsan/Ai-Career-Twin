@@ -6,38 +6,39 @@ import logo from '../assets/logo.png'
 import './Login.css'
 
 const COUNTRY_CODES = [
-  { code: '+91', flag: '🇮🇳', name: 'India' },
-  { code: '+1', flag: '🇺🇸', name: 'United States' },
-  { code: '+44', flag: '🇬🇧', name: 'United Kingdom' },
-  { code: '+61', flag: '🇦🇺', name: 'Australia' },
-  { code: '+1', flag: '🇨🇦', name: 'Canada' },
-  { code: '+49', flag: '🇩🇪', name: 'Germany' },
-  { code: '+33', flag: '🇫🇷', name: 'France' },
-  { code: '+81', flag: '🇯🇵', name: 'Japan' },
-  { code: '+86', flag: '🇨🇳', name: 'China' },
-  { code: '+82', flag: '🇰🇷', name: 'South Korea' },
-  { code: '+65', flag: '🇸🇬', name: 'Singapore' },
+  { code: '+91',  flag: '🇮🇳', name: 'India' },
+  { code: '+1',   flag: '🇺🇸', name: 'United States' },
+  { code: '+44',  flag: '🇬🇧', name: 'United Kingdom' },
+  { code: '+61',  flag: '🇦🇺', name: 'Australia' },
+  { code: '+1',   flag: '🇨🇦', name: 'Canada' },
+  { code: '+49',  flag: '🇩🇪', name: 'Germany' },
+  { code: '+33',  flag: '🇫🇷', name: 'France' },
+  { code: '+81',  flag: '🇯🇵', name: 'Japan' },
+  { code: '+86',  flag: '🇨🇳', name: 'China' },
+  { code: '+82',  flag: '🇰🇷', name: 'South Korea' },
+  { code: '+65',  flag: '🇸🇬', name: 'Singapore' },
   { code: '+971', flag: '🇦🇪', name: 'UAE' },
   { code: '+966', flag: '🇸🇦', name: 'Saudi Arabia' },
-  { code: '+60', flag: '🇲🇾', name: 'Malaysia' },
-  { code: '+94', flag: '🇱🇰', name: 'Sri Lanka' },
+  { code: '+60',  flag: '🇲🇾', name: 'Malaysia' },
+  { code: '+94',  flag: '🇱🇰', name: 'Sri Lanka' },
   { code: '+977', flag: '🇳🇵', name: 'Nepal' },
   { code: '+880', flag: '🇧🇩', name: 'Bangladesh' },
-  { code: '+92', flag: '🇵🇰', name: 'Pakistan' },
-  { code: '+55', flag: '🇧🇷', name: 'Brazil' },
-  { code: '+27', flag: '🇿🇦', name: 'South Africa' },
+  { code: '+92',  flag: '🇵🇰', name: 'Pakistan' },
+  { code: '+55',  flag: '🇧🇷', name: 'Brazil' },
+  { code: '+27',  flag: '🇿🇦', name: 'South Africa' },
   { code: '+234', flag: '🇳🇬', name: 'Nigeria' },
   { code: '+254', flag: '🇰🇪', name: 'Kenya' },
-  { code: '+7', flag: '🇷🇺', name: 'Russia' },
-  { code: '+39', flag: '🇮🇹', name: 'Italy' },
-  { code: '+34', flag: '🇪🇸', name: 'Spain' },
+  { code: '+7',   flag: '🇷🇺', name: 'Russia' },
+  { code: '+39',  flag: '🇮🇹', name: 'Italy' },
+  { code: '+34',  flag: '🇪🇸', name: 'Spain' },
 ]
+
 const OTP_LENGTH = 6
-const OTP_EXPIRY_SECS = 300
-// 5 minutes
+const OTP_EXPIRY_SECS = 300 // 5 minutes
+
 export default function Login() {
   const { login, register } = useAuth()
-  const navigate = useNavigate()
+  const navigate  = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
 
   // Tab mode: 'login' or 'signup'
@@ -146,26 +147,26 @@ export default function Login() {
   // Password strength logic
   const calcStrength = (v) => {
     let s = 0
-    if (v.length >= 8) s++
-    if (/[A-Z]/.test(v)) s++
-    if (/[0-9]/.test(v)) s++
+    if (v.length >= 8)           s++
+    if (/[A-Z]/.test(v))         s++
+    if (/[0-9]/.test(v))         s++
     if (/[^A-Za-z0-9]/.test(v)) s++
     setStrength(s)
   }
 
   const strengthLevels = [
-    { w: '0%', c: 'transparent', t: '' },
-    { w: '25%', c: '#ef4444', t: 'Weak' },
-    { w: '50%', c: '#f59e0b', t: 'Fair' },
-    { w: '75%', c: '#3b82f6', t: 'Good' },
-    { w: '100%', c: '#10b981', t: 'Strong' },
+    { w:'0%',   c:'transparent', t:'' },
+    { w:'25%',  c:'#ef4444',     t:'Weak' },
+    { w:'50%',  c:'#f59e0b',     t:'Fair' },
+    { w:'75%',  c:'#3b82f6',     t:'Good' },
+    { w:'100%', c:'#10b981',     t:'Strong' },
   ]
 
   // Validate Login
   const validateLogin = () => {
     const e = {}
     if (!loginForm.username.trim()) e.username = 'Enter your email or username.'
-    if (!loginForm.password) e.password = 'Enter your password.'
+    if (!loginForm.password)        e.password = 'Enter your password.'
     setErrors(e)
     return !Object.keys(e).length
   }
@@ -173,12 +174,12 @@ export default function Login() {
   // Validate Signup
   const validateSignup = () => {
     const e = {}
-    if (regForm.name.trim().length < 2) e.name = 'Enter your full name.'
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regForm.email)) e.email = 'Enter a valid email address.'
-    if (!/^\d{10}$/.test(regForm.mobile)) e.mobile = 'Enter exactly 10 digit mobile number.'
-    if (regForm.password.length < 8) e.password = 'Password must be at least 8 characters.'
-    if (regForm.confirm !== regForm.password || !regForm.confirm) e.confirm = 'Passwords do not match.'
-    if (!terms) e.terms = 'Accept the terms to continue.'
+    if (regForm.name.trim().length < 2)                             e.name     = 'Enter your full name.'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(regForm.email))         e.email    = 'Enter a valid email address.'
+    if (!/^\d{10}$/.test(regForm.mobile))                            e.mobile   = 'Enter exactly 10 digit mobile number.'
+    if (regForm.password.length < 8)                                 e.password = 'Password must be at least 8 characters.'
+    if (regForm.confirm !== regForm.password || !regForm.confirm)    e.confirm  = 'Passwords do not match.'
+    if (!terms)                                                   e.terms    = 'Accept the terms to continue.'
     setErrors(e)
     return !Object.keys(e).length
   }
@@ -300,14 +301,14 @@ export default function Login() {
         token
       )
 
-      setMsg({ type: 'success', text: '✓ Email verified & account created! Logging you in automatically…' })
+      setMsg({ type: 'success', text: '✓ Email verified & account created! Switching to login…' })
 
-      // Auto-login immediately and redirect to dashboard
-      await login(regForm.email.trim(), regForm.password)
+      // Auto-prefill and switch back to login
+      setLoginForm({ username: regForm.email.trim(), password: regForm.password })
       setTimeout(() => {
         resetOtpState()
-        navigate('/dashboard')
-      }, 1000)
+        setSearchParams({ mode: 'login' })
+      }, 2000)
     } catch (err) {
       setMsg({ type: 'error', text: err.response?.data?.error || 'Verification failed. Please try again.' })
     } finally {
@@ -510,12 +511,12 @@ export default function Login() {
                   >
                     <span className="country-flag">{selectedCountry.flag}</span>
                     <span className="country-code">{selectedCountry.code}</span>
-                    <i className={`fa-solid fa-chevron-down country-arrow ${showDropdown ? 'open' : ''}`} />
+                    <i className={`fa-solid fa-chevron-down country-arrow ${showDropdown ? 'open' : ''}`}/>
                   </button>
                   {showDropdown && (
                     <div className="country-dropdown">
                       <div className="country-search-wrap">
-                        <i className="fa-solid fa-magnifying-glass country-search-icon" />
+                        <i className="fa-solid fa-magnifying-glass country-search-icon"/>
                         <input
                           type="text"
                           className="country-search"
@@ -588,20 +589,10 @@ export default function Login() {
                   <i className={`fa-solid ${showPwd ? 'fa-eye-slash' : 'fa-eye'}`} />
                 </button>
               </div>
-              <div className="pwd-checklist">
-                <span className={`chk-item ${regForm.password.length >= 8 ? 'pass' : ''}`}>
-                  <i className={`fa-solid ${regForm.password.length >= 8 ? 'fa-circle-check' : 'fa-circle-dot'}`} /> Min 8 chars
-                </span>
-                <span className={`chk-item ${/[A-Z]/.test(regForm.password) ? 'pass' : ''}`}>
-                  <i className={`fa-solid ${/[A-Z]/.test(regForm.password) ? 'fa-circle-check' : 'fa-circle-dot'}`} /> 1 Uppercase
-                </span>
-                <span className={`chk-item ${/[0-9]/.test(regForm.password) ? 'pass' : ''}`}>
-                  <i className={`fa-solid ${/[0-9]/.test(regForm.password) ? 'fa-circle-check' : 'fa-circle-dot'}`} /> 1 Number
-                </span>
-                <span className={`chk-item ${/[^A-Za-z0-9]/.test(regForm.password) ? 'pass' : ''}`}>
-                  <i className={`fa-solid ${/[^A-Za-z0-9]/.test(regForm.password) ? 'fa-circle-check' : 'fa-circle-dot'}`} /> 1 Special
-                </span>
+              <div className="str-track">
+                <div className="str-fill" style={{ width: sl.w, background: sl.c }} />
               </div>
+              {sl.t && <span className="str-lbl" style={{ color: sl.c }}>{sl.t}</span>}
               <span className="login-field-err">{errors.password}</span>
             </div>
 
@@ -723,7 +714,7 @@ export default function Login() {
         </p>
       </div>
 
-      <p className="login-foot">© 2026 AI Career Twin</p>
+      <p className="login-foot">© 2026 AI Career Twin — B.E. CSE Final Year Project</p>
     </div>
   )
 }

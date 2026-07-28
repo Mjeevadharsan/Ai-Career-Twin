@@ -28,91 +28,30 @@ export default function Recommendations() {
   const projects = data?.analysis?.projects || []
   const certs    = data?.analysis?.certifications || []
 
-  // Group into logical learning path phases
-  const phases = [
-    {
-      name: 'Phase 1: Foundations',
-      description: 'Kickstart your learning path with baseline principles, core terminology, and fundamental courses.',
-      courses: courses.slice(0, 2),
-      projects: projects.slice(0, 1),
-      icon: 'fa-chess-pawn',
-      color: '#3b82f6'
-    },
-    {
-      name: 'Phase 2: Core Engineering',
-      description: 'Deep dive into advanced structures, industrial frameworks, and interactive problem-solving.',
-      courses: courses.slice(2, 4),
-      projects: projects.slice(1, 2),
-      icon: 'fa-chess-knight',
-      color: '#8b5cf6'
-    },
-    {
-      name: 'Phase 3: Specialization & Capstone',
-      description: 'Hone your expertise with full-scale deployment projects and specialized state-of-the-art topics.',
-      courses: courses.slice(4),
-      projects: projects.slice(2),
-      icon: 'fa-chess-king',
-      color: '#10b981'
-    }
-  ].filter(p => p.courses.length > 0 || p.projects.length > 0)
-
   return (
     <div className="shared-page">
       <div className="page-header">
         <h1><i className="fa-solid fa-graduation-cap text-accent"/> Recommendations</h1>
-        <p>Personalized learning roadmap designed to prepare you for the <strong>{top}</strong> role.</p>
+        <p>Personalized courses, projects, and certifications for <strong>{top}</strong></p>
       </div>
 
-      <div className="roadmap-timeline">
-        {phases.map((ph, idx) => (
-          <div key={idx} className="timeline-phase">
-            {/* Timeline icon node */}
-            <div className="timeline-node" style={{ background: ph.color, boxShadow: `0 0 15px ${ph.color}40` }}>
-              <i className={`fa-solid ${ph.icon}`} />
-            </div>
-            
-            {/* Content card */}
-            <div className="timeline-content glass-card">
-              <div className="phase-title-section">
-                <span className="phase-pill" style={{ color: ph.color, background: `${ph.color}15`, borderColor: `${ph.color}25` }}>
-                  Step {idx + 1}
-                </span>
-                <h3 className="phase-name">{ph.name}</h3>
-                <p className="phase-desc">{ph.description}</p>
-              </div>
-
-              <div className="phase-resources-grid">
-                {ph.courses.length > 0 && (
-                  <div className="resource-col">
-                    <h4 className="resource-header"><i className="fa-solid fa-book-open" /> Recommended Courses</h4>
-                    <div className="rec-list-full">
-                      {ph.courses.map((c, i) => (
-                        <CourseCard key={i} title={c} category={top} index={idx * 2 + i} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {ph.projects.length > 0 && (
-                  <div className="resource-col">
-                    <h4 className="resource-header"><i className="fa-solid fa-laptop-code" /> Hands-on Projects</h4>
-                    <div className="rec-list-full">
-                      {ph.projects.map((p, i) => (
-                        <ProjectCard key={i} title={p} index={idx * 2 + i} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+      <div className="recs-grid">
+        <div className="glass-card">
+          <h3><i className="fa-solid fa-book-open text-accent"/> Recommended Courses</h3>
+          <div className="rec-list-full">
+            {courses.map((c, i) => <CourseCard key={i} title={c} category={top} index={i}/>)}
           </div>
-        ))}
-      </div>
+        </div>
 
-      {certs.length > 0 && (
-        <div className="glass-card recs-certs-v2" style={{ marginTop: '40px' }}>
-          <h3 className="certs-section-title"><i className="fa-solid fa-award text-accent"/> Suggested Industry Certifications</h3>
-          <p className="certs-section-desc">Validate your knowledge with these recognized credential pathways.</p>
+        <div className="glass-card">
+          <h3><i className="fa-solid fa-laptop-code text-accent"/> Suggested Projects</h3>
+          <div className="rec-list-full">
+            {projects.map((p, i) => <ProjectCard key={i} title={p} index={i}/>)}
+          </div>
+        </div>
+
+        <div className="glass-card recs-certs">
+          <h3><i className="fa-solid fa-certificate text-accent"/> Certifications</h3>
           <div className="certs-grid">
             {certs.map((c, i) => (
               <div key={i} className="cert-item">
@@ -122,7 +61,7 @@ export default function Recommendations() {
             ))}
           </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

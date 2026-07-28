@@ -151,21 +151,6 @@ public class ApiController {
 
     @GetMapping("/profile")
     public ResponseEntity<?> getProfile(@RequestHeader Map<String, String> headers) {
-        try {
-            java.io.File source = new java.io.File("C:/Users/JEEVADHARSAN M/.gemini/antigravity-ide/brain/ac951e46-75f8-4858-87e1-2efbdac3cef9/career_bg_1782746518373.png");
-            java.io.File dest = new java.io.File("c:/Users/JEEVADHARSAN M/OneDrive/Desktop/AI career twin/frontend/src/assets/career_bg2.png");
-            if (source.exists()) {
-                dest.getParentFile().mkdirs();
-                java.nio.file.Files.copy(source.toPath(), dest.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            }
-            
-            java.io.File sourceIllo = new java.io.File("C:/Users/JEEVADHARSAN M/.gemini/antigravity-ide/brain/ac951e46-75f8-4858-87e1-2efbdac3cef9/hero_illustration_1782748430871.png");
-            java.io.File destIllo = new java.io.File("c:/Users/JEEVADHARSAN M/OneDrive/Desktop/AI career twin/frontend/src/assets/hero_illustration.png");
-            if (sourceIllo.exists()) {
-                java.nio.file.Files.copy(sourceIllo.toPath(), destIllo.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (Exception e) {}
-
         Integer userId = getUserId(headers);
         if (userId == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Unauthorized. Please log in."));
