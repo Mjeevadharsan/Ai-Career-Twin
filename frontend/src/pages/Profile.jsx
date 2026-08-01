@@ -43,8 +43,8 @@ export default function Profile() {
     setLoading(true); setMsg(null)
     try {
       await saveProfile(form)
-      setMsg({ type:'success', text:'Profile saved! Redirecting to dashboard…' })
-      setTimeout(() => navigate('/dashboard'), 1400)
+      setMsg({ type:'success', text:'Twin profile updated! Loading your AI career predictions…' })
+      setTimeout(() => navigate('/dashboard'), 400)
     } catch { setMsg({ type:'error', text:'Failed to save. Please try again.' }) }
     finally   { setLoading(false) }
   }
