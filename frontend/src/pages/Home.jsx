@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-const bgImage = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=1920&auto=format&fit=crop'
 import './Home.css'
 
 const features = [
@@ -33,8 +32,8 @@ export default function Home() {
 
   return (
     <div className="home-page">
-      {/* Hero Section with Background Image */}
-      <section className="hero-banner" style={{ backgroundImage: `url(${bgImage})` }}>
+      {/* Hero Section */}
+      <section className="hero-banner">
         <div className="hero-overlay" />
         
         <div className="hero-centered-content fade-up">
