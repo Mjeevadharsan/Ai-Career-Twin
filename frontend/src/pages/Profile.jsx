@@ -42,10 +42,15 @@ export default function Profile() {
   const handleSubmit = async () => {
     setLoading(true); setMsg(null)
     try {
-      await saveProfile(form)
+      const res = await saveProfile(form)
+      const profileData = {
+        ...form,
+        has_profile: true,
+        ...res.data,
+      }
       setMsg({ type:'success', text:'Twin profile updated! Loading your AI career predictions…' })
-      setTimeout(() => navigate('/dashboard'), 400)
-    } catch { setMsg({ type:'error', text:'Failed to save. Please try again.' }) }
+      setTimeout(() => navigate('/dashboard', { state: { profileData } }), 300)
+    } catch { setMsg({ type:'error', text:'Failed to save profile. Please try again.' }) }
     finally   { setLoading(false) }
   }
 

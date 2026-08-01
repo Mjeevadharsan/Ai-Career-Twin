@@ -541,30 +541,30 @@ public class DatabaseService {
         String skillsStr = String.join(",", skills);
         String interestsStr = String.join(",", interests);
 
-        // MySQL/H2 upsert using INSERT ... ON DUPLICATE KEY UPDATE
-        String sql = "INSERT INTO profiles " +
-                "(user_id, cgpa, projects, certifications, apt_analytical, apt_coding, apt_communication, apt_problem_solving, skills, interests) "
-                +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) " +
-                "ON DUPLICATE KEY UPDATE " +
-                "cgpa=VALUES(cgpa), projects=VALUES(projects), certifications=VALUES(certifications), " +
-                "apt_analytical=VALUES(apt_analytical), apt_coding=VALUES(apt_coding), " +
-                "apt_communication=VALUES(apt_communication), apt_problem_solving=VALUES(apt_problem_solving), " +
-                "skills=VALUES(skills), interests=VALUES(interests)";
+        String deleteSql = "DELETE FROM profiles WHERE user_id = ?";
+        String insertSql = "INSERT INTO profiles " +
+                "(user_id, cgpa, projects, certifications, apt_analytical, apt_coding, apt_communication, apt_problem_solving, skills, interests) " +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = getConnection();
-                PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setInt(1, userId);
-            pstmt.setDouble(2, cgpa);
-            pstmt.setInt(3, projects);
-            pstmt.setInt(4, certifications);
-            pstmt.setDouble(5, analytical);
-            pstmt.setDouble(6, coding);
-            pstmt.setDouble(7, communication);
-            pstmt.setDouble(8, problemSolving);
-            pstmt.setString(9, skillsStr);
-            pstmt.setString(10, interestsStr);
-            pstmt.executeUpdate();
+        try (Connection conn = getConnection()) {
+            try (PreparedStatement delPstmt = conn.prepareStatement(deleteSql)) {
+                delPstmt.setInt(1, userId);
+                delPstmt.executeUpdate();
+            }
+
+            try (PreparedStatement insPstmt = conn.prepareStatement(insertSql)) {
+                insPstmt.setInt(1, userId);
+                insPstmt.setDouble(2, cgpa);
+                insPstmt.setInt(3, projects);
+                insPstmt.setInt(4, certifications);
+                insPstmt.setDouble(5, analytical);
+                insPstmt.setDouble(6, coding);
+                insPstmt.setDouble(7, communication);
+                insPstmt.setDouble(8, problemSolving);
+                insPstmt.setString(9, skillsStr);
+                insPstmt.setString(10, interestsStr);
+                insPstmt.executeUpdate();
+            }
 
             // Log profile activity
             String username = "";

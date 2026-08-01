@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getProfile } from '../services/profileService'
 import CareerCard   from '../components/CareerCard'
@@ -20,14 +20,25 @@ const REQUIRED_SKILLS = {
 }
 
 export default function Dashboard() {
-  const { user }       = useAuth()
-  const [data, setData]   = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { user }        = useAuth()
+  const location        = useLocation()
+  const initialData     = location.state?.profileData
+  const [data, setData] = useState(initialData || null)
+  const [loading, setLoading] = useState(!initialData)
 
   useEffect(() => {
+    // If we already have fresh data from profile submission, still fetch to get user meta
+    // but don't overwrite if the fetch returns no profile (backend may not have restarted)
     getProfile()
-      .then(res => setData(res.data))
-      .catch(() => setData(null))
+      .then(res => {
+        if (res.data?.has_profile && res.data?.analysis) {
+          setData(res.data)
+        } else if (!data) {
+          // Only set if we don't already have data from navigation state
+          setData(res.data)
+        }
+      })
+      .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
 
@@ -38,7 +49,7 @@ export default function Dashboard() {
     </div>
   )
 
-  if (!data?.has_profile) return (
+  if (!data?.has_profile && !data?.analysis) return (
     <div className="dash-empty">
       <div className="empty-card glass-card">
         <i className="fa-solid fa-circle-nodes fa-3x" style={{ color:'var(--blue-400)', marginBottom:16 }}/>

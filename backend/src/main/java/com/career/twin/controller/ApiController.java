@@ -230,8 +230,12 @@ public class ApiController {
             Set<String> skills    = new HashSet<>(skillsList);
             Set<String> interests = new HashSet<>(interestsList);
 
-            databaseService.saveProfile(userId, cgpa, projects, certifications,
+            boolean saved = databaseService.saveProfile(userId, cgpa, projects, certifications,
                     analytical, coding, communication, problemSolving, skills, interests);
+            if (!saved) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(Map.of("error", "Failed to save profile to database."));
+            }
 
             List<CareerProbability> probs = knnClassifier.predict(
                     cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests);
@@ -239,7 +243,21 @@ public class ApiController {
             AnalysisResult analysis = recommendationService.analyze(
                     probs, cgpa, projects, certifications, analytical, coding, communication, problemSolving, skills, interests);
 
-            return ResponseEntity.ok(Map.of("message", "Profile saved successfully!", "analysis", analysis));
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Profile saved successfully!");
+            response.put("has_profile", true);
+            response.put("cgpa", cgpa);
+            response.put("projects", projects);
+            response.put("certifications", certifications);
+            response.put("apt_analytical", analytical);
+            response.put("apt_coding", coding);
+            response.put("apt_communication", communication);
+            response.put("apt_problem_solving", problemSolving);
+            response.put("skills", skills);
+            response.put("interests", interests);
+            response.put("analysis", analysis);
+
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of("error", "Invalid data: " + e.getMessage()));
         }
