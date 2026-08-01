@@ -39,8 +39,8 @@ body {
   font-family: var(--font-body);
   background-color: var(--dark);
   background-image: 
-    radial-gradient(ellipse at 50% 0%, rgba(37, 99, 235, 0.18) 0%, transparent 70%),
-    linear-gradient(180deg, rgba(10, 14, 26, 0.86) 0%, rgba(13, 20, 38, 0.94) 100%),
+    radial-gradient(ellipse at 50% 0%, rgba(37, 99, 235, 0.25) 0%, transparent 70%),
+    linear-gradient(180deg, rgba(10, 14, 26, 0.40) 0%, rgba(13, 20, 38, 0.60) 100%),
     url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=1920&auto=format&fit=crop');
   background-size: cover;
   background-position: center;

@@ -17,9 +17,9 @@
   position: absolute;
   inset: 0;
   background: 
-    radial-gradient(circle at center, rgba(10, 14, 26, 0.55) 0%, rgba(10, 14, 26, 0.90) 100%),
-    linear-gradient(180deg, rgba(10, 14, 26, 0.4) 0%, rgba(10, 14, 26, 0.85) 100%);
-  backdrop-filter: blur(2px);
+    radial-gradient(circle at center, rgba(10, 14, 26, 0.25) 0%, rgba(10, 14, 26, 0.70) 100%),
+    linear-gradient(180deg, rgba(10, 14, 26, 0.20) 0%, rgba(10, 14, 26, 0.65) 100%);
+  backdrop-filter: none;
   z-index: 1;
 }
 
